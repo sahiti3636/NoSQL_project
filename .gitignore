@@ -2,3 +2,5 @@
 .DS_Store
 *.gz
 NASA_access_log_*
+data/
+runs/

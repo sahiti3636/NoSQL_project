@@ -1,0 +1,65 @@
+# NASA Log ETL - Phase 1 environment (PostgreSQL + MongoDB + Hive)
+#   docker compose up -d          start everything
+#   docker compose ps             all three should say "healthy"
+#   docker compose down           stop (data is kept in volumes)
+#   docker compose down -v        stop AND wipe all databases
+# Local development only: the passwords below are not secrets.
+
+name: nasa-etl
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: nasa_etl
+      POSTGRES_USER: etl
+      POSTGRES_PASSWORD: etl
+    ports:
+      - "${PG_PORT:-5432}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      # Runs once, on the very first start (empty volume)
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U etl -d nasa_etl"]
+      interval: 5s
+      retries: 20
+
+  mongodb:
+    image: mongo:7
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ./data:/input:ro
+      - ./contracts:/contracts:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      retries: 20
+
+  hive:
+    image: apache/hive:4.0.1
+    environment:
+      SERVICE_NAME: hiveserver2
+      # Larger heap so whole-run queries over 3.4M lines don't run out of memory
+      HADOOP_HEAPSIZE: "2048"
+    ports:
+      - "${HIVE_PORT:-10000}:10000"   # JDBC / beeline
+      - "10002:10002"                 # HiveServer2 web UI
+    volumes:
+      - hive_warehouse:/opt/hive/data/warehouse
+      - ./data:/input:ro              # raw NASA logs (never modified)
+      - ./contracts:/contracts:ro
+      - ./runs:/runs                  # batch folders in, result files out
+    healthcheck:
+      test: ["CMD-SHELL", "beeline -u jdbc:hive2://localhost:10000/ -e 'select 1' > /dev/null 2>&1"]
+      interval: 15s
+      timeout: 60s
+      retries: 20
+      start_period: 60s
+
+volumes:
+  pg_data:
+  mongo_data:
+  hive_warehouse:
