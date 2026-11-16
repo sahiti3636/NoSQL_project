@@ -1,0 +1,56 @@
+{
+  "format": {
+    "encoding": "UTF-8",
+    "delimiter": "\t",
+    "header": false,
+    "quoting": "none",
+    "escapes": {"\\": "\\\\", "\t": "\\t", "\n": "\\n"},
+    "note": "Identical to PostgreSQL COPY text format, so files load with COPY ... FROM STDIN unchanged. Row order does not matter."
+  },
+  "files": {
+    "q1.tsv": {
+      "query_id": "q1",
+      "query_name": "Daily Traffic Summary",
+      "columns": [
+        {"name": "log_date",      "type": "date",   "format": "YYYY-MM-DD"},
+        {"name": "status_code",   "type": "int"},
+        {"name": "request_count", "type": "bigint"},
+        {"name": "total_bytes",   "type": "bigint"}
+      ]
+    },
+    "q2.tsv": {
+      "query_id": "q2",
+      "query_name": "Top Requested Resources",
+      "rows": 20,
+      "order": "request_count DESC, resource_path ASC (byte order)",
+      "columns": [
+        {"name": "resource_path",       "type": "text"},
+        {"name": "request_count",       "type": "bigint"},
+        {"name": "total_bytes",         "type": "bigint"},
+        {"name": "distinct_host_count", "type": "bigint"}
+      ]
+    },
+    "q3.tsv": {
+      "query_id": "q3",
+      "query_name": "Hourly Error Analysis",
+      "note": "One row per (log_date, log_hour) with at least one valid request, including hours with zero errors. Error = 400 <= status_code <= 599.",
+      "columns": [
+        {"name": "log_date",             "type": "date",   "format": "YYYY-MM-DD"},
+        {"name": "log_hour",             "type": "int",    "range": [0, 23]},
+        {"name": "error_request_count",  "type": "bigint"},
+        {"name": "total_request_count",  "type": "bigint"},
+        {"name": "error_rate",           "type": "double", "formula": "error_request_count / total_request_count", "compare_tolerance": 1e-12},
+        {"name": "distinct_error_hosts", "type": "bigint"}
+      ]
+    },
+    "malformed.tsv": {
+      "columns": [
+        {"name": "raw_line", "type": "text", "note": "original line, unchanged apart from the escapes above"}
+      ]
+    },
+    "stats.json": {
+      "fields": ["records_read", "valid_records", "malformed_records", "engine_ms"],
+      "invariant": "valid_records + malformed_records = records_read"
+    }
+  }
+}

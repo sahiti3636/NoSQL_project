@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BatchResult",
+  "description": "Engine -> controller. The controller rejects the batch unless records_read = record_count from the BatchSpec and valid_records + malformed_records = records_read.",
+  "type": "object",
+  "required": ["batch_id", "status", "records_read", "valid_records", "malformed_records", "outputs", "engine_ms"],
+  "additionalProperties": false,
+  "properties": {
+    "batch_id":          {"type": ["integer", "null"], "minimum": 1, "description": "null for the finalize (whole-run) result"},
+    "status":            {"enum": ["ok", "failed"]},
+    "error":             {"type": "string"},
+    "records_read":      {"type": "integer", "minimum": 0},
+    "valid_records":     {"type": "integer", "minimum": 0},
+    "malformed_records": {"type": "integer", "minimum": 0},
+    "outputs": {
+      "type": "array",
+      "items": {"enum": ["q1.tsv", "q2.tsv", "q3.tsv", "malformed.tsv"]}
+    },
+    "engine_ms": {
+      "type": "object",
+      "description": "Engine time per step in milliseconds, e.g. parse, q1, q2, q3",
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    }
+  }
+}

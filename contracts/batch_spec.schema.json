@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BatchSpec",
+  "description": "Controller -> engine. One message per batch.",
+  "type": "object",
+  "required": ["run_id", "pipeline", "batch_id", "batch_size", "first_line_no", "last_line_no", "record_count", "input_uri", "output_dir"],
+  "additionalProperties": false,
+  "properties": {
+    "run_id":        {"type": "string", "format": "uuid"},
+    "pipeline":      {"enum": ["hive", "mongodb", "pig", "mapreduce"]},
+    "batch_id":      {"type": "integer", "minimum": 1},
+    "batch_size":    {"type": "integer", "minimum": 1},
+    "first_line_no": {"type": "integer", "minimum": 1},
+    "last_line_no":  {"type": "integer", "minimum": 1},
+    "record_count":  {"type": "integer", "minimum": 1, "description": "last_line_no - first_line_no + 1"},
+    "input_uri":     {"type": "string", "description": "Folder holding 1 or 2 unchanged pieces of the original files (Hive/Pig/MapReduce), or the MongoDB collection holding this batch's raw lines"},
+    "output_dir":    {"type": "string", "description": "Where the engine writes q1.tsv, q2.tsv, q3.tsv, malformed.tsv, stats.json"}
+  }
+}
