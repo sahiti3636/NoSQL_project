@@ -18,7 +18,8 @@ SET search_path TO etl;
 CREATE TABLE etl_run (
     run_id            uuid        PRIMARY KEY,
     pipeline          text        NOT NULL
-                      CHECK (pipeline IN ('hive', 'mongodb', 'pig', 'mapreduce')),
+                      -- 'reference' = the TEST-ONLY Python engine; kept out of the report views
+                      CHECK (pipeline IN ('hive', 'mongodb', 'pig', 'mapreduce', 'reference')),
     batch_size        int         NOT NULL CHECK (batch_size > 0),
     status            text        NOT NULL DEFAULT 'running'
                       CHECK (status IN ('running', 'succeeded', 'failed')),
@@ -168,7 +169,7 @@ SELECT r.run_id, r.pipeline, d.query_id, d.query_name,
 FROM etl_run r
 JOIN query_execution e ON e.run_id = r.run_id AND e.batch_id IS NULL
 JOIN query_def d       ON d.query_id = e.query_id
-WHERE r.status = 'succeeded';
+WHERE r.status = 'succeeded' AND r.pipeline <> 'reference';
 
 -- Per-batch metadata for a run (batch ID, size, timing).
 CREATE VIEW v_batch_report AS
@@ -232,7 +233,7 @@ SELECT pipeline, batch_size,
        round(avg(avg_batch_size), 2)    AS avg_batch_size,
        max(num_batches)                 AS num_batches
 FROM etl_run
-WHERE status = 'succeeded'
+WHERE status = 'succeeded' AND pipeline <> 'reference'
 GROUP BY pipeline, batch_size;
 
 COMMIT;

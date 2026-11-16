@@ -1,0 +1,2 @@
+psycopg[binary]==3.3.9
+pymongo==4.20.0

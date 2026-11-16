@@ -4,3 +4,5 @@
 NASA_access_log_*
 data/
 runs/
+.venv/
+__pycache__/

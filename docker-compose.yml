@@ -15,7 +15,7 @@ services:
       POSTGRES_USER: etl
       POSTGRES_PASSWORD: etl
     ports:
-      - "${PG_PORT:-5432}:5432"
+      - "${PG_PORT:-5433}:5432"   # 5433 on the laptop: 5432 is often taken by a local PostgreSQL
     volumes:
       - pg_data:/var/lib/postgresql/data
       # Runs once, on the very first start (empty volume)
