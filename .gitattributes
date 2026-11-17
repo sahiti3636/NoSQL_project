@@ -1,0 +1,4 @@
+# Files consumed inside Linux containers must retain LF on Windows checkouts.
+*.sh text eol=lf
+*.regex text eol=lf
+*.tsv text eol=lf

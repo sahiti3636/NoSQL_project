@@ -29,7 +29,7 @@ DAS 839 NoSQL end-semester project. One ETL over the NASA HTTP logs (July and Au
 | Person | Engine work | Shared work | Status |
 | --- | --- | --- | --- |
 | **A** | MongoDB: raw ingestion, parsing inside MongoDB, malformed records, Q1 | Contracts, Docker, controller (batcher, run manager, loader, CLI), test-only reference engine | **Done, merged (PR #1)** |
-| **B** | MongoDB: Q2 and Q3 | Architecture diagram, equivalence check script, golden test file | To do |
+| **B** | MongoDB: Q2 and Q3 | Architecture diagram, equivalence check script, database tests | **Done, not merged yet** |
 | **C** | Hive: table over raw logs, parsing, malformed records, Q1 | PostgreSQL schema (done by A, so C reviews it and owns explaining it) | **Engine done, not merged yet** |
 | **D** | Hive: Q2 and Q3, per-batch output | Report script | **Engine done, not merged yet** · report to do |
 
@@ -131,12 +131,12 @@ We checked the real files against the expected answers in `reference/`.
 
 ## 6. Left for Phase 1
 
-- [ ] **B:** `_q2_pipeline()` and `_q3_pipeline()` in `etl/engines/mongodb.py`. Then a full MongoDB run where `etl.v_equivalence` agrees with the reference.
-- [ ] **B:** equivalence check script against `reference/reference_results.json`.
-- [ ] **B:** golden test file `tests/golden/edge_cases.log`, about 25 hand-checked lines.
+- [x] **B:** `_q2_pipeline()` and `_q3_pipeline()` in `etl/engines/mongodb.py`. Full MongoDB run: 106 s, all queries agree with the reference.
+- [x] **B:** equivalence checker `python -m etl.compare` (row by row in PostgreSQL) and `scripts/verify_reference.py`. **Hive vs MongoDB: EQUIVALENT** on every batch and the final output.
+- [x] **B:** edge cases covered by `tests/integration/test_person_b.py` (16 database tests) instead of a separate golden file.
 - [x] **C and D:** Hive engine in `etl/engines/hive.py`: full run succeeds and Q1–Q3 agree with the reference (see [docs/hive_engine.md](docs/hive_engine.md)). Still to merge.
 - [ ] **D:** report script that reads the database views.
-- [ ] **B:** architecture diagram.
+- [x] **B:** architecture diagram, `docs/architecture.png` and `docs/ARCHITECTURE.md`.
 - [ ] **All:** benchmark runs at 100k, 500k and 1M on one machine.
 - [ ] **All:** prepare and rehearse the Phase 1 presentation and demo.
 

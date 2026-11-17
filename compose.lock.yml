@@ -1,0 +1,9 @@
+# Share this file with teammates for identical image builds.
+# Usage: docker compose -f docker-compose.yml -f compose.lock.yml up -d --wait
+services:
+  postgres:
+    image: postgres:15@sha256:2663a9f0fde52de94f5dad3603a1942359f49472f1017c1a6d64f66bfedacb40
+  mongodb:
+    image: mongo:7@sha256:9896df581dfd0718b7abe112f4c37598d0986c54060e4ec1384997e6503c8c71
+  hive:
+    image: apache/hive:4.0.1@sha256:5194161ef50b80875f937dff04936df047cbe894e9727ab8f0606349345b1bd3

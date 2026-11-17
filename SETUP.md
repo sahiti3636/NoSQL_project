@@ -2,6 +2,8 @@
 
 Everything runs in Docker, so every team member gets the same versions. About 15 minutes the first time.
 
+On **Windows**, follow [docs/PERSON_B.md](docs/PERSON_B.md) for PowerShell versions of these commands.
+
 ## 1. Install
 
 - **Docker Desktop**, then in *Settings → Resources* give it **at least 6 GB of memory** (8 GB is better).
@@ -32,11 +34,13 @@ wc -l data/NASA_access_log_Jul95 data/NASA_access_log_Aug95
 ## 3. Start the services
 
 ```bash
-docker compose up -d --wait
+docker compose -f docker-compose.yml -f compose.lock.yml up -d --wait --wait-timeout 360
 docker compose ps
 ```
 
 All three must show **healthy**. The first start downloads about 4.6 GB of images.
+
+`compose.lock.yml` pins each image to an exact version (MongoDB 7.0.48, PostgreSQL 15.20, Hive 4.0.1), because tags like `mongo:7` move over time. The pins work on both Windows (amd64) and Apple Silicon Macs (arm64). Always pass both `-f` files when starting or recreating containers. `ps`, `exec`, `logs` and `stop` work with plain `docker compose`.
 
 | Service | Connect from your laptop | Login |
 | --- | --- | --- |
@@ -52,7 +56,7 @@ PostgreSQL creates the `etl` schema from `sql/schema.sql` automatically on the *
 docker compose exec -T postgres psql -U etl -d nasa_etl -v ON_ERROR_STOP=1 < sql/schema.sql
 ```
 
-or wipe everything and start fresh with `docker compose down -v` and then `docker compose up -d --wait`.
+or deliberately wipe everything with `docker compose down -v` and then run the start command above again. This deletes all saved runs in every database.
 
 ## 4. Check your setup
 
@@ -79,7 +83,27 @@ python3 -m venv .venv
 
 `reference` is a **test-only** pure-Python engine. It exists to test the controller, loader and database, and to give every real engine a known-good answer. It is hidden from the report views and must never be shown as a pipeline in the demo. A full run takes about 16 seconds and must report 3,461,613 records, 1 malformed, and final results equal to `reference/reference_results.json`.
 
-`hive` is complete. A full run takes about 4–5 minutes, and how it works is described in [docs/hive_engine.md](docs/hive_engine.md). `mongodb` fails with `NotImplementedError` until Q2 and Q3 are filled in in `etl/engines/mongodb.py`.
+Both real engines are complete:
+
+```bash
+.venv/bin/python -m etl run --pipeline mongodb --batch-size 500000   # about 2 minutes
+.venv/bin/python -m etl run --pipeline hive --batch-size 500000      # about 3 minutes
+```
+
+How they work: [docs/hive_engine.md](docs/hive_engine.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+Check that two runs agree, row by row, for every batch and the final output (exit code 0 = equivalent):
+
+```bash
+.venv/bin/python -m etl.compare --left-run HIVE_RUN_ID --right-run MONGODB_RUN_ID
+.venv/bin/python scripts/verify_reference.py --run-id ANY_RUN_ID     # final results vs reference_results.json
+```
+
+Database tests for Q2, Q3 and the checker (needs the containers running):
+
+```bash
+.venv/bin/python -m unittest discover -s tests/integration -p test_person_b.py -v
+```
 
 ## 7. Writing an engine (Hive and MongoDB teams)
 

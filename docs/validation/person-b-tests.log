@@ -1,0 +1,21 @@
+test_changed_q2_detected_even_with_unchanged_fingerprint (test_person_b.EndToEndComparisonTest.test_changed_q2_detected_even_with_unchanged_fingerprint) ... ok
+test_deleted_final_rows_rejected (test_person_b.EndToEndComparisonTest.test_deleted_final_rows_rejected) ... ok
+test_different_batch_size_rejected (test_person_b.EndToEndComparisonTest.test_different_batch_size_rejected) ... ok
+test_every_batch_and_final_equal (test_person_b.EndToEndComparisonTest.test_every_batch_and_final_equal) ... ok
+test_failed_run_rejected (test_person_b.EndToEndComparisonTest.test_failed_run_rejected) ... ok
+test_missing_execution_rejected (test_person_b.EndToEndComparisonTest.test_missing_execution_rejected) ... ok
+test_missing_run_rejected (test_person_b.EndToEndComparisonTest.test_missing_run_rejected) ... ok
+test_q3_rate_tolerance (test_person_b.EndToEndComparisonTest.test_q3_rate_tolerance) ... ok
+test_reference_requires_explicit_opt_in (test_person_b.EndToEndComparisonTest.test_reference_requires_explicit_opt_in) ... ok
+test_self_comparison_rejected (test_person_b.EndToEndComparisonTest.test_self_comparison_rejected) ... ok
+test_wrong_dataset_rejected (test_person_b.EndToEndComparisonTest.test_wrong_dataset_rejected) ... ok
+test_empty_valid_input (test_person_b.MongoQueriesTest.test_empty_valid_input) ... ok
+test_q2_exact_hosts_bytes_and_no_method_status_filter (test_person_b.MongoQueriesTest.test_q2_exact_hosts_bytes_and_no_method_status_filter) ... ok
+test_q2_top20_binary_tiebreak (test_person_b.MongoQueriesTest.test_q2_top20_binary_tiebreak) ... ok
+test_q3_boundaries_denominator_and_distinct_error_hosts (test_person_b.MongoQueriesTest.test_q3_boundaries_denominator_and_distinct_error_hosts) ... ok
+test_q3_zero_error_hour_and_separate_dates (test_person_b.MongoQueriesTest.test_q3_zero_error_hour_and_separate_dates) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 3.173s
+
+OK

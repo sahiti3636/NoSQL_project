@@ -1,0 +1,28 @@
+{
+  "run_id": "c817ae40-b8c4-4cb7-9f50-d67b612a7896",
+  "queries": {
+    "q1": {
+      "rows": 295,
+      "expected_rows": 295,
+      "differences": 0,
+      "fingerprint_matches": true,
+      "fingerprint": "5833e8e18faed82d4fbea573abb4c9b4827b25f4ba7ae1d1b891cd34679b12ad"
+    },
+    "q2": {
+      "rows": 20,
+      "expected_rows": 20,
+      "differences": 0,
+      "fingerprint_matches": true,
+      "fingerprint": "d5af90695df6ca6e1100e0797cf2301fa4326ad167798789dfeead85145268a3"
+    },
+    "q3": {
+      "rows": 1369,
+      "expected_rows": 1369,
+      "differences": 0,
+      "fingerprint_matches": true,
+      "fingerprint": "855e8af68d935834d6e9771a41240eabd8fd0126664e7f42918aed193070c684"
+    }
+  },
+  "run_counts_match": true,
+  "passed": true
+}

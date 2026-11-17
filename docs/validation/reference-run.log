@@ -1,0 +1,15 @@
+run fe304457-dc62-4489-ad87-3deed8786f21  pipeline=reference  batch_size=500,000   [TEST-ONLY engine]
+  batch    1  lines         1-500,000    malformed 0     7.76s
+  batch    2  lines   500,001-1,000,000  malformed 0     5.51s
+  batch    3  lines 1,000,001-1,500,000  malformed 0     3.67s
+  batch    4  lines 1,500,001-2,000,000  malformed 1     3.74s
+  batch    5  lines 2,000,001-2,500,000  malformed 0     4.66s
+  batch    6  lines 2,500,001-3,000,000  malformed 0     4.88s
+  batch    7  lines 3,000,001-3,461,613  malformed 0     4.77s
+
+run fe304457-dc62-4489-ad87-3deed8786f21 succeeded
+  pipeline          reference
+  records           3,461,613 (3,461,612 valid, 1 malformed)
+  batches           7 x 500,000 (average 494,516.14)
+  runtime           41.14 s
+  full report       (reporting module - to be written by the team)
