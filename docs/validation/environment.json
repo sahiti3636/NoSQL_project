@@ -1,0 +1,49 @@
+{
+  "recorded_at_ist": "2026-11-17T23:11:17.439006+05:30",
+  "source_base_commit": "7619b074fbe59c543b1e34b7b9e25a17353faf8d",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "python": "3.13.0",
+  "packages": {
+    "pymongo": "4.20.0",
+    "psycopg": "3.3.9",
+    "psycopg-binary": "3.3.9"
+  },
+  "docker_version": "29.9.3",
+  "compose_version": "5.7.0",
+  "docker_memory_bytes": 4107956224,
+  "mongodb_version": "7.0.48",
+  "postgres_version": "postgres (PostgreSQL) 15.20 (Debian 15.20-1.pgdg13+1)",
+  "hive_image_version": "4.0.1",
+  "containers": [
+    {
+      "service": "postgres",
+      "configured_image": "postgres:15@sha256:2663a9f0fde52de94f5dad3603a1942359f49472f1017c1a6d64f66bfedacb40",
+      "image_id": "sha256:2663a9f0fde52de94f5dad3603a1942359f49472f1017c1a6d64f66bfedacb40",
+      "repo_digests": [
+        "postgres@sha256:2663a9f0fde52de94f5dad3603a1942359f49472f1017c1a6d64f66bfedacb40"
+      ],
+      "architecture": "amd64",
+      "health": "healthy"
+    },
+    {
+      "service": "mongodb",
+      "configured_image": "mongo:7@sha256:9896df581dfd0718b7abe112f4c37598d0986c54060e4ec1384997e6503c8c71",
+      "image_id": "sha256:9896df581dfd0718b7abe112f4c37598d0986c54060e4ec1384997e6503c8c71",
+      "repo_digests": [
+        "mongo@sha256:9896df581dfd0718b7abe112f4c37598d0986c54060e4ec1384997e6503c8c71"
+      ],
+      "architecture": "amd64",
+      "health": "healthy"
+    },
+    {
+      "service": "hive",
+      "configured_image": "apache/hive:4.0.1@sha256:5194161ef50b80875f937dff04936df047cbe894e9727ab8f0606349345b1bd3",
+      "image_id": "sha256:5194161ef50b80875f937dff04936df047cbe894e9727ab8f0606349345b1bd3",
+      "repo_digests": [
+        "apache/hive@sha256:5194161ef50b80875f937dff04936df047cbe894e9727ab8f0606349345b1bd3"
+      ],
+      "architecture": "amd64",
+      "health": "healthy"
+    }
+  ]
+}

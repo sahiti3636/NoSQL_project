@@ -1,0 +1,76 @@
+[
+  {
+    "run_id": "c817ae40-b8c4-4cb7-9f50-d67b612a7896",
+    "pipeline": "mongodb",
+    "batch_size": 500000,
+    "status": "succeeded",
+    "started_at": "2026-11-17 17:25:15.849034+00:00",
+    "finished_at": "2026-11-17 17:35:04.206262+00:00",
+    "runtime_ms": 588362,
+    "total_records": 3461613,
+    "valid_records": 3461612,
+    "malformed_records": 1,
+    "num_batches": 7,
+    "avg_batch_size": "494516.14",
+    "input_sha256": "7638ea586a9783858af74e0575c8b612e51d90795af04eeb7fbb05eb7edcb5e6",
+    "input_manifest": [
+      {
+        "file": "NASA_access_log_Jul95",
+        "bytes": 205242368,
+        "lines": 1891715,
+        "sha256": "96551161b5bdcaacbc3c17fa108191c478fb35dfe87895c16e34a8f6552bf29a"
+      },
+      {
+        "file": "NASA_access_log_Aug95",
+        "bytes": 167813770,
+        "lines": 1569898,
+        "sha256": "c656a5665fcf9c8442bc9e09762de1411f1b97e7bbee65803c6738cdde4cf302"
+      }
+    ],
+    "environment": {
+      "python": "3.13.0",
+      "machine": "AMD64",
+      "pipeline": "mongodb",
+      "platform": "Windows-11-10.0.26300-SP0",
+      "git_commit": "7619b07"
+    },
+    "error_message": null
+  },
+  {
+    "run_id": "fe304457-dc62-4489-ad87-3deed8786f21",
+    "pipeline": "reference",
+    "batch_size": 500000,
+    "status": "succeeded",
+    "started_at": "2026-11-17 17:24:01.704017+00:00",
+    "finished_at": "2026-11-17 17:24:42.845334+00:00",
+    "runtime_ms": 41141,
+    "total_records": 3461613,
+    "valid_records": 3461612,
+    "malformed_records": 1,
+    "num_batches": 7,
+    "avg_batch_size": "494516.14",
+    "input_sha256": "7638ea586a9783858af74e0575c8b612e51d90795af04eeb7fbb05eb7edcb5e6",
+    "input_manifest": [
+      {
+        "file": "NASA_access_log_Jul95",
+        "bytes": 205242368,
+        "lines": 1891715,
+        "sha256": "96551161b5bdcaacbc3c17fa108191c478fb35dfe87895c16e34a8f6552bf29a"
+      },
+      {
+        "file": "NASA_access_log_Aug95",
+        "bytes": 167813770,
+        "lines": 1569898,
+        "sha256": "c656a5665fcf9c8442bc9e09762de1411f1b97e7bbee65803c6738cdde4cf302"
+      }
+    ],
+    "environment": {
+      "python": "3.13.0",
+      "machine": "AMD64",
+      "pipeline": "reference",
+      "platform": "Windows-11-10.0.26300-SP0",
+      "git_commit": "7619b07"
+    },
+    "error_message": null
+  }
+]

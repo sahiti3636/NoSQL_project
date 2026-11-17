@@ -1,7 +1,7 @@
 """MongoDB pipeline.
 
 Part A (done): raw-line ingestion, parsing inside MongoDB, malformed records, Q1.
-Part B (to do): Q2 and Q3 - fill in _q2_pipeline() and _q3_pipeline() at the bottom.
+Part B: Q2 and Q3 use two-stage grouping for exact distinct-host counts.
 
 How the work is split between Python and MongoDB
 ------------------------------------------------
@@ -164,7 +164,8 @@ class MongoEngine(Engine):
                                     ("q2", self._q2_pipeline, contracts.output_columns("q2.tsv")),
                                     ("q3", self._q3_pipeline, contracts.output_columns("q3.tsv"))):
             t = time.monotonic()
-            rows = self.parsed.aggregate([{"$match": match}] + build(), allowDiskUse=True)
+            rows = self.parsed.aggregate([{"$match": match}] + build(), allowDiskUse=True,
+                                         collation={"locale": "simple"})
             write_tsv(out_dir / f"{qid}.tsv", ([d[c] for c in columns] for d in rows))
             ms[qid] = _ms(t)
         return ms
@@ -180,21 +181,54 @@ class MongoEngine(Engine):
             {"$sort": {"log_date": 1, "status_code": 1}},
         ]
 
-    # ------------------------------------------------------------------ PERSON B: fill these in
+    # ------------------------------------------------------------------ PERSON B
     def _q2_pipeline(self) -> list:
         """Q2 Top Requested Resources. Must return stages that output documents with fields
-        resource_path, request_count, total_bytes, distinct_host_count (exactly 20 rows,
+        resource_path, request_count, total_bytes, distinct_host_count (up to 20 rows,
         sorted by request_count descending, then resource_path ascending).
         Parsed fields available: host, log_date, log_hour, http_method, resource_path,
         protocol_version, status_code, bytes_transferred. The $match is added for you."""
-        raise NotImplementedError("MongoDB Q2 (Person B) not written yet")
+        # One row per (path, host), then one per path: no unbounded host arrays.
+        # finalize() repeats this over all parsed rows, so hosts crossing batches
+        # count once and a global top resource need not be in every batch's top 20.
+        return [
+            {"$group": {"_id": {"p": "$resource_path", "h": "$host"},
+                        "request_count": {"$sum": 1},
+                        "total_bytes": {"$sum": "$bytes_transferred"}}},
+            {"$group": {"_id": "$_id.p",
+                        "request_count": {"$sum": "$request_count"},
+                        "total_bytes": {"$sum": "$total_bytes"},
+                        "distinct_host_count": {"$sum": 1}}},
+            {"$project": {"_id": 0, "resource_path": "$_id", "request_count": 1,
+                          "total_bytes": 1, "distinct_host_count": 1}},
+            {"$sort": {"request_count": -1, "resource_path": 1}},
+            {"$limit": 20},
+        ]
 
     def _q3_pipeline(self) -> list:
         """Q3 Hourly Error Analysis. Must return stages that output documents with fields
         log_date, log_hour, error_request_count, total_request_count, error_rate,
         distinct_error_hosts - one per (log_date, log_hour) with any request, INCLUDING hours
         with zero errors. Error = 400 <= status_code <= 599. The $match is added for you."""
-        raise NotImplementedError("MongoDB Q3 (Person B) not written yet")
+        is_error = {"$and": [{"$gte": ["$status_code", 400]},
+                              {"$lte": ["$status_code", 599]}]}
+        return [
+            # Keep successful requests: they contribute to the denominator and
+            # preserve zero-error hours. A host contributes at most one error host.
+            {"$group": {"_id": {"d": "$log_date", "h": "$log_hour", "host": "$host"},
+                        "total_request_count": {"$sum": 1},
+                        "error_request_count": {"$sum": {"$cond": [is_error, 1, 0]}}}},
+            {"$group": {"_id": {"d": "$_id.d", "h": "$_id.h"},
+                        "total_request_count": {"$sum": "$total_request_count"},
+                        "error_request_count": {"$sum": "$error_request_count"},
+                        "distinct_error_hosts": {"$sum": {"$cond": [
+                            {"$gt": ["$error_request_count", 0]}, 1, 0]}}}},
+            {"$project": {"_id": 0, "log_date": "$_id.d", "log_hour": "$_id.h",
+                          "error_request_count": 1, "total_request_count": 1,
+                          "error_rate": {"$divide": ["$error_request_count", "$total_request_count"]},
+                          "distinct_error_hosts": 1}},
+            {"$sort": {"log_date": 1, "log_hour": 1}},
+        ]
 
 
 def _ms(start: float) -> int:

@@ -1,0 +1,29 @@
+[
+  {
+    "input_sha256": "7638ea586a9783858af74e0575c8b612e51d90795af04eeb7fbb05eb7edcb5e6",
+    "batch_size": 500000,
+    "query_id": "q1",
+    "pipelines_compared": 2,
+    "distinct_answers": 1,
+    "all_agree": true,
+    "pipelines": "mongodb, reference"
+  },
+  {
+    "input_sha256": "7638ea586a9783858af74e0575c8b612e51d90795af04eeb7fbb05eb7edcb5e6",
+    "batch_size": 500000,
+    "query_id": "q2",
+    "pipelines_compared": 2,
+    "distinct_answers": 1,
+    "all_agree": true,
+    "pipelines": "mongodb, reference"
+  },
+  {
+    "input_sha256": "7638ea586a9783858af74e0575c8b612e51d90795af04eeb7fbb05eb7edcb5e6",
+    "batch_size": 500000,
+    "query_id": "q3",
+    "pipelines_compared": 2,
+    "distinct_answers": 1,
+    "all_agree": true,
+    "pipelines": "mongodb, reference"
+  }
+]

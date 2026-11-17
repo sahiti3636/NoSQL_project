@@ -1,0 +1,15 @@
+run c817ae40-b8c4-4cb7-9f50-d67b612a7896  pipeline=mongodb  batch_size=500,000
+  batch    1  lines         1-500,000    malformed 0    31.52s
+  batch    2  lines   500,001-1,000,000  malformed 0    32.29s
+  batch    3  lines 1,000,001-1,500,000  malformed 0    52.32s
+  batch    4  lines 1,500,001-2,000,000  malformed 1    59.16s
+  batch    5  lines 2,000,001-2,500,000  malformed 0    56.80s
+  batch    6  lines 2,500,001-3,000,000  malformed 0    77.90s
+  batch    7  lines 3,000,001-3,461,613  malformed 0    73.46s
+
+run c817ae40-b8c4-4cb7-9f50-d67b612a7896 succeeded
+  pipeline          mongodb
+  records           3,461,613 (3,461,612 valid, 1 malformed)
+  batches           7 x 500,000 (average 494,516.14)
+  runtime           588.36 s
+  full report       (reporting module - to be written by the team)

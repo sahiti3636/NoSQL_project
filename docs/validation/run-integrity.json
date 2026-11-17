@@ -1,0 +1,22 @@
+[
+  {
+    "run_id": "c817ae40-b8c4-4cb7-9f50-d67b612a7896",
+    "pipeline": "mongodb",
+    "total_records": 3461613,
+    "num_batches": 7,
+    "batch_records": 3461613,
+    "batch_rows": 7,
+    "batch_malformed": 1,
+    "consistent": true
+  },
+  {
+    "run_id": "fe304457-dc62-4489-ad87-3deed8786f21",
+    "pipeline": "reference",
+    "total_records": 3461613,
+    "num_batches": 7,
+    "batch_records": 3461613,
+    "batch_rows": 7,
+    "batch_malformed": 1,
+    "consistent": true
+  }
+]

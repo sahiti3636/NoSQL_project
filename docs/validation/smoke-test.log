@@ -1,0 +1,5 @@
+2038 lines: 22 binary/odd, 5 inner-quote, 5 no-protocol, 5 fallback, 1 truncated
+MongoDB: 2038 rows, 1 malformed, mismatches vs reference: 0
+Hive: 2038 rows, 1 malformed, mismatches vs reference: 0
+Hive row whose path contains a real tab survived escaping: True
+SMOKE TEST PASSED

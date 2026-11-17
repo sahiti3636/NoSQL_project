@@ -1,0 +1,37 @@
+{
+  "left_run": "fe304457-dc62-4489-ad87-3deed8786f21",
+  "right_run": "c817ae40-b8c4-4cb7-9f50-d67b612a7896",
+  "pipelines": [
+    "reference",
+    "mongodb"
+  ],
+  "batch_size": 500000,
+  "total_records": 3461613,
+  "scope": "every batch and final output",
+  "rate_tolerance": 1e-12,
+  "queries": [
+    {
+      "query_id": "q1",
+      "left_rows": 614,
+      "right_rows": 614,
+      "differences": 0,
+      "invalid_executions": 0
+    },
+    {
+      "query_id": "q2",
+      "left_rows": 160,
+      "right_rows": 160,
+      "differences": 0,
+      "invalid_executions": 0
+    },
+    {
+      "query_id": "q3",
+      "left_rows": 2744,
+      "right_rows": 2744,
+      "differences": 0,
+      "invalid_executions": 0
+    }
+  ],
+  "malformed_differences": 0,
+  "equivalent": true
+}
