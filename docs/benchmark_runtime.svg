@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" font-family="Inter, -apple-system, Helvetica, Arial, sans-serif">
+<rect width="960" height="560" fill="#fcfcfb"/>
+<text x="30" y="44" font-size="22" font-weight="600" fill="#0b0b0b">Full-run runtime by batch size (median of 3 runs)</text>
+<text x="30" y="70" font-size="14" fill="#52514e">3,461,613 log lines · Apple M3 Pro, Docker 8 GB · whiskers show min–max of the 3 runs</text>
+<rect x="30" y="88" width="14" height="14" rx="3" fill="#2a78d6"/><text x="52" y="100" font-size="14" fill="#0b0b0b">MongoDB 7</text>
+<rect x="170" y="88" width="14" height="14" rx="3" fill="#eb6834"/><text x="192" y="100" font-size="14" fill="#0b0b0b">Hive 4.0.1</text>
+<line x1="90" x2="930" y1="470.0" y2="470.0" stroke="#b9b7b0" stroke-width="1"/>
+<text x="80" y="475.0" font-size="13" fill="#52514e" text-anchor="end">0</text>
+<line x1="90" x2="930" y1="400.0" y2="400.0" stroke="#e4e3df" stroke-width="1"/>
+<text x="80" y="405.0" font-size="13" fill="#52514e" text-anchor="end">100</text>
+<line x1="90" x2="930" y1="330.0" y2="330.0" stroke="#e4e3df" stroke-width="1"/>
+<text x="80" y="335.0" font-size="13" fill="#52514e" text-anchor="end">200</text>
+<line x1="90" x2="930" y1="260.0" y2="260.0" stroke="#e4e3df" stroke-width="1"/>
+<text x="80" y="265.0" font-size="13" fill="#52514e" text-anchor="end">300</text>
+<line x1="90" x2="930" y1="190.0" y2="190.0" stroke="#e4e3df" stroke-width="1"/>
+<text x="80" y="195.0" font-size="13" fill="#52514e" text-anchor="end">400</text>
+<line x1="90" x2="930" y1="120.0" y2="120.0" stroke="#e4e3df" stroke-width="1"/>
+<text x="80" y="125.0" font-size="13" fill="#52514e" text-anchor="end">500</text>
+<text x="24" y="295.0" font-size="13" fill="#52514e" transform="rotate(-90 24 295.0)" text-anchor="middle">seconds</text>
+<path d="M157,470 V400.71000000000004 Q157,396.71000000000004 161,396.71000000000004 H225 Q229,396.71000000000004 229,400.71000000000004 V470 Z" fill="#2a78d6"/>
+<line x1="193.0" x2="193.0" y1="395.73" y2="397.9" stroke="#52514e" stroke-width="1.5"/>
+<line x1="186.0" x2="200.0" y1="397.9" y2="397.9" stroke="#52514e" stroke-width="1.5"/>
+<line x1="186.0" x2="200.0" y1="395.73" y2="395.73" stroke="#52514e" stroke-width="1.5"/>
+<text x="193.0" y="387.73" font-size="14" font-weight="600" fill="#0b0b0b" text-anchor="middle">105 s</text>
+<path d="M231,470 V168.10000000000002 Q231,164.10000000000002 235,164.10000000000002 H299 Q303,164.10000000000002 303,168.10000000000002 V470 Z" fill="#eb6834"/>
+<line x1="267.0" x2="267.0" y1="163.26000000000005" y2="189.72000000000003" stroke="#52514e" stroke-width="1.5"/>
+<line x1="260.0" x2="274.0" y1="189.72000000000003" y2="189.72000000000003" stroke="#52514e" stroke-width="1.5"/>
+<line x1="260.0" x2="274.0" y1="163.26000000000005" y2="163.26000000000005" stroke="#52514e" stroke-width="1.5"/>
+<text x="267.0" y="155.26000000000005" font-size="14" font-weight="600" fill="#0b0b0b" text-anchor="middle">437 s</text>
+<text x="230" y="496" font-size="15" font-weight="600" fill="#0b0b0b" text-anchor="middle">100k lines / batch</text>
+<text x="230" y="516" font-size="13" fill="#52514e" text-anchor="middle">35 batches</text>
+<path d="M437,470 V399.59000000000003 Q437,395.59000000000003 441,395.59000000000003 H505 Q509,395.59000000000003 509,399.59000000000003 V470 Z" fill="#2a78d6"/>
+<line x1="473.0" x2="473.0" y1="395.31" y2="398.32" stroke="#52514e" stroke-width="1.5"/>
+<line x1="466.0" x2="480.0" y1="398.32" y2="398.32" stroke="#52514e" stroke-width="1.5"/>
+<line x1="466.0" x2="480.0" y1="395.31" y2="395.31" stroke="#52514e" stroke-width="1.5"/>
+<text x="473.0" y="387.31" font-size="14" font-weight="600" fill="#0b0b0b" text-anchor="middle">106 s</text>
+<path d="M511,470 V354.65 Q511,350.65 515,350.65 H579 Q583,350.65 583,354.65 V470 Z" fill="#eb6834"/>
+<line x1="547.0" x2="547.0" y1="321.39" y2="355.41" stroke="#52514e" stroke-width="1.5"/>
+<line x1="540.0" x2="554.0" y1="355.41" y2="355.41" stroke="#52514e" stroke-width="1.5"/>
+<line x1="540.0" x2="554.0" y1="321.39" y2="321.39" stroke="#52514e" stroke-width="1.5"/>
+<text x="547.0" y="313.39" font-size="14" font-weight="600" fill="#0b0b0b" text-anchor="middle">170 s</text>
+<text x="510" y="496" font-size="15" font-weight="600" fill="#0b0b0b" text-anchor="middle">500k lines / batch</text>
+<text x="510" y="516" font-size="13" fill="#52514e" text-anchor="middle">7 batches</text>
+<path d="M717,470 V400.15 Q717,396.15 721,396.15 H785 Q789,396.15 789,400.15 V470 Z" fill="#2a78d6"/>
+<line x1="753.0" x2="753.0" y1="381.24" y2="397.76" stroke="#52514e" stroke-width="1.5"/>
+<line x1="746.0" x2="760.0" y1="397.76" y2="397.76" stroke="#52514e" stroke-width="1.5"/>
+<line x1="746.0" x2="760.0" y1="381.24" y2="381.24" stroke="#52514e" stroke-width="1.5"/>
+<text x="753.0" y="373.24" font-size="14" font-weight="600" fill="#0b0b0b" text-anchor="middle">106 s</text>
+<path d="M791,470 V374.11 Q791,370.11 795,370.11 H859 Q863,370.11 863,374.11 V470 Z" fill="#eb6834"/>
+<line x1="827.0" x2="827.0" y1="368.28999999999996" y2="376.41" stroke="#52514e" stroke-width="1.5"/>
+<line x1="820.0" x2="834.0" y1="376.41" y2="376.41" stroke="#52514e" stroke-width="1.5"/>
+<line x1="820.0" x2="834.0" y1="368.28999999999996" y2="368.28999999999996" stroke="#52514e" stroke-width="1.5"/>
+<text x="827.0" y="360.28999999999996" font-size="14" font-weight="600" fill="#0b0b0b" text-anchor="middle">143 s</text>
+<text x="790" y="496" font-size="15" font-weight="600" fill="#0b0b0b" text-anchor="middle">1M lines / batch</text>
+<text x="790" y="516" font-size="13" fill="#52514e" text-anchor="middle">4 batches</text>
+</svg>

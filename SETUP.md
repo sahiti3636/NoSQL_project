@@ -99,6 +99,12 @@ Check that two runs agree, row by row, for every batch and the final output (exi
 .venv/bin/python scripts/verify_reference.py --run-id ANY_RUN_ID     # final results vs reference_results.json
 ```
 
+Benchmarks (both engines at 100k, 500k and 1M, 3 rounds, about an hour; results in [docs/BENCHMARKS.md](docs/BENCHMARKS.md)):
+
+```bash
+./scripts/run_benchmarks.sh
+```
+
 Database tests for Q2, Q3 and the checker (needs the containers running):
 
 ```bash

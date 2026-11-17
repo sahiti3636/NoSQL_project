@@ -137,7 +137,7 @@ We checked the real files against the expected answers in `reference/`.
 - [x] **C and D:** Hive engine in `etl/engines/hive.py`: full run succeeds and Q1–Q3 agree with the reference (see [docs/hive_engine.md](docs/hive_engine.md)). Still to merge.
 - [ ] **D:** report script that reads the database views.
 - [x] **B:** architecture diagram, `docs/architecture.png` and `docs/ARCHITECTURE.md`.
-- [ ] **All:** benchmark runs at 100k, 500k and 1M on one machine.
+- [x] **All:** benchmark runs at 100k, 500k and 1M on one machine (3 rounds each). MongoDB stays at about 105 s at every size, while Hive goes from 437 s to 143 s because of a fixed cost of about 9 s per batch. See [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
 - [ ] **All:** prepare and rehearse the Phase 1 presentation and demo.
 
 **Phase 2 (later):** Pig and MapReduce engines, using the same contracts, controller and database.
