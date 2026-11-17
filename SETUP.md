@@ -79,7 +79,7 @@ python3 -m venv .venv
 
 `reference` is a **test-only** pure-Python engine. It exists to test the controller, loader and database, and to give every real engine a known-good answer. It is hidden from the report views and must never be shown as a pipeline in the demo. A full run takes about 16 seconds and must report 3,461,613 records, 1 malformed, and final results equal to `reference/reference_results.json`.
 
-`hive` and `mongodb` fail with `NotImplementedError` until their teams fill in `etl/engines/hive.py` and `etl/engines/mongodb.py`.
+`hive` is complete. A full run takes about 4–5 minutes, and how it works is described in [docs/hive_engine.md](docs/hive_engine.md). `mongodb` fails with `NotImplementedError` until Q2 and Q3 are filled in in `etl/engines/mongodb.py`.
 
 ## 7. Writing an engine (Hive and MongoDB teams)
 
