@@ -92,6 +92,17 @@ Both real engines are complete:
 
 How they work: [docs/hive_engine.md](docs/hive_engine.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+Show a run's results with its execution metadata (pipeline, run ID, time of execution, runtime, batch IDs, batch size, average batch size, per-query times):
+
+```bash
+.venv/bin/python -m etl report                              # latest successful run
+.venv/bin/python -m etl report --pipeline hive              # latest Hive run
+.venv/bin/python -m etl report --run-id RUN_ID --rows all   # every Q1/Q3 row in the terminal
+.venv/bin/python -m etl report --html runs/reports/latest.html   # full report as a web page
+.venv/bin/python -m etl report --list                       # recent runs
+.venv/bin/python -m etl report --compare                    # runtimes and equivalence across pipelines
+```
+
 Check that two runs agree, row by row, for every batch and the final output (exit code 0 = equivalent):
 
 ```bash

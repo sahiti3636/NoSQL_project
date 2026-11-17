@@ -3,6 +3,7 @@
     python -m etl run --pipeline hive --batch-size 500000
     python -m etl run --pipeline reference --batch-size 500000      (test-only engine)
     python -m etl pipelines
+    python -m etl report [--run-id ID | --pipeline NAME] [--rows N|all] [--html FILE] [--list] [--compare]
 """
 import argparse
 import sys
@@ -24,7 +25,22 @@ def main(argv=None) -> int:
                    help="keep each batch's input copy under runs/<run_id>/ for debugging")
 
     sub.add_parser("pipelines", help="list available pipelines")
+
+    rp = sub.add_parser("report", help="show a run's results and execution metadata from PostgreSQL")
+    rp.add_argument("--run-id", help="run to show (default: the latest successful run)")
+    rp.add_argument("--pipeline", choices=sorted(ENGINES), help="latest successful run of this pipeline")
+    rp.add_argument("--rows", default="10", help="Q1/Q3 rows to print, or 'all' (default 10; Q2 is always all 20)")
+    rp.add_argument("--html", type=Path, metavar="FILE", help="also write the full report (every row) as HTML")
+    rp.add_argument("--list", action="store_true", help="list recent runs instead")
+    rp.add_argument("--compare", action="store_true", help="runtime and equivalence across pipelines instead")
     args = p.parse_args(argv)
+
+    if args.command == "report":
+        from .report import main as report_main
+        if args.rows != "all" and not args.rows.isdigit():
+            p.error("--rows must be a number or 'all'")
+        return report_main(args.run_id, args.pipeline, None if args.rows == "all" else int(args.rows),
+                           args.html, args.list, args.compare)
 
     if args.command == "pipelines":
         for name in sorted(ENGINES):
@@ -43,7 +59,7 @@ def main(argv=None) -> int:
     print(f"  records           {s.total_records:,} ({s.valid_records:,} valid, {s.malformed_records:,} malformed)")
     print(f"  batches           {s.num_batches} x {s.batch_size:,} (average {s.avg_batch_size:,.2f})")
     print(f"  runtime           {s.runtime_ms / 1000:,.2f} s")
-    print("  full report       (reporting module - to be written by the team)")
+    print(f"  full report       python -m etl report --run-id {s.run_id}")
     return 0
 
 

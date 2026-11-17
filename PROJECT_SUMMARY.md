@@ -31,7 +31,7 @@ DAS 839 NoSQL end-semester project. One ETL over the NASA HTTP logs (July and Au
 | **A** | MongoDB: raw ingestion, parsing inside MongoDB, malformed records, Q1 | Contracts, Docker, controller (batcher, run manager, loader, CLI), test-only reference engine | **Done, merged (PR #1)** |
 | **B** | MongoDB: Q2 and Q3 | Architecture diagram, equivalence check script, database tests | **Done, not merged yet** |
 | **C** | Hive: table over raw logs, parsing, malformed records, Q1 | PostgreSQL schema (done by A, so C reviews it and owns explaining it) | **Engine done, not merged yet** |
-| **D** | Hive: Q2 and Q3, per-batch output | Report script | **Engine done, not merged yet** · report to do |
+| **D** | Hive: Q2 and Q3, per-batch output | Report script | **Engine done** · report done (`python -m etl report`) |
 
 Each team has one person on setup, parsing and Q1, and one person on the two harder queries (distinct counts, top 20 and rates). Each person also owns one shared part.
 
@@ -135,7 +135,7 @@ We checked the real files against the expected answers in `reference/`.
 - [x] **B:** equivalence checker `python -m etl.compare` (row by row in PostgreSQL) and `scripts/verify_reference.py`. **Hive vs MongoDB: EQUIVALENT** on every batch and the final output.
 - [x] **B:** edge cases covered by `tests/integration/test_person_b.py` (16 database tests) instead of a separate golden file.
 - [x] **C and D:** Hive engine in `etl/engines/hive.py`: full run succeeds and Q1–Q3 agree with the reference (see [docs/hive_engine.md](docs/hive_engine.md)). Still to merge.
-- [ ] **D:** report script that reads the database views.
+- [x] **D:** report module `etl/report.py` (`python -m etl report`): run metadata, per-query and per-batch times, Q1–Q3 results, `--html` full export, `--list`, `--compare`.
 - [x] **B:** architecture diagram, `docs/architecture.png` and `docs/ARCHITECTURE.md`.
 - [x] **All:** benchmark runs at 100k, 500k and 1M on one machine (3 rounds each). MongoDB stays at about 105 s at every size, while Hive goes from 437 s to 143 s because of a fixed cost of about 9 s per batch. See [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
 - [ ] **All:** prepare and rehearse the Phase 1 presentation and demo.
