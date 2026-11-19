@@ -113,7 +113,7 @@ report/         Phase 1 report (IEEE format, LaTeX + PDF)
 
 | Member | Phase 1 work |
 | --- | --- |
-| Tushar (BT2024022) | MongoDB ingestion, parsing, malformed records, Q1; controller, batcher, loader |
-| Sahiti (BT2024163) | MongoDB Q2 and Q3; architecture, equivalence checker, database tests |
+| Sahiti (BT2024163) | MongoDB ingestion, parsing, malformed records, Q1; controller, batcher, loader |
+| Tushaar (BT2024022) | MongoDB Q2 and Q3; architecture, equivalence checker, database tests |
 | Aman (BT2024123) | Hive ingestion, parsing, malformed records, Q1; PostgreSQL schema |
 | Prajwal (BT2024245) | Hive Q2, Q3 and whole-run results; reporting module |
