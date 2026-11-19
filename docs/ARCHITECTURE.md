@@ -32,8 +32,8 @@ flowchart TD
 - MongoDB Person B: Q2, Q3, this architecture diagram, and SQL equivalence checking.
 - Hive Person C: raw-line ingestion with RegexSerDe, parsing in HiveQL, malformed records, Q1.
 - Hive Person D: Q2, Q3, whole-run finalize and cleanup. Details: [hive_engine.md](hive_engine.md).
-- Shared reporting work: the baseline CLI explicitly says the reporting module is still to be written.
-  The comparison report here is a correctness check, not the complete project reporting module.
+- Reporting module (Person D): `python -m etl report` shows a run's results with its execution
+  metadata, and can export them as HTML. The equivalence checker is a separate correctness check.
 
 ## Q2 and Q3 design
 

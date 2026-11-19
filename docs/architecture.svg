@@ -57,8 +57,8 @@
 <text x="102" y="1074" class="body">Validate input identity + batch size + completion</text>
 <text x="102" y="1101" class="body">Compare every batch + final rows; report differences</text>
 <rect x="780" y="1010" width="580" height="130" rx="14" fill="#ffffff" stroke="#bccade" stroke-width="2"/>
-<text x="802" y="1042" class="head">Reporting | shared team work</text>
+<text x="802" y="1042" class="head">Reporting module</text>
 <text x="802" y="1074" class="body">Read stored results + runtime + batch statistics</text>
-<text x="802" y="1101" class="body">Reporting module: still to be written</text>
+<text x="802" y="1101" class="body">python -m etl report: terminal + HTML export</text>
 <text x="80" y="1180" class="small" style="fill:#526783">Reference engine: test-only oracle, excluded from demo/report pipelines. Dashed arrows carry contracts.</text>
 </svg>
