@@ -16,30 +16,36 @@ It never reads a log line. The jobs do everything else:
   parsed  --Q3 jobs-->  q3.tsv         (per date+hour+host -> per date+hour)
   finalize: the same Q jobs over mr_data/parsed/* (every batch)
 
-Already done for you (shared setup)
+Status
+  * Done (Sahiti): ParseJob, Q1Job, LogRecord, LongPair, process_batch(), _queries(), _q1().
+    Checked against the Python reference at batch size 500,000: every batch's counts, q1.tsv and
+    malformed.tsv, the whole-run Q1, and all fields of the 2,038-line smoke sample match.
+  * To do (Tushaar): _q2(), _q3() and finalize(). Each is marked TODO below.
+
+Shared setup
   * Java sources live in mapreduce/src/ (mounted at /mapreduce). prepare() compiles all of them
     into runs/<run>/mapreduce/etl-mr.jar, so a compile error fails the run straight away.
   * etl.mr.Contracts loads the contract regexes and month map from /contracts.
   * etl.mr.CopyText writes COPY-format output lines (escaping \\\\ \\t \\n \\r).
-  * etl.mr.LineCount is a tiny working job to copy from (setup check only).
-  * self._job('etl.mr.ParseJob', arg1, arg2, label=...) runs one job and returns its time in ms.
+  * self._job('etl.mr.X', arg1, arg2, label=...) runs one job and returns its time in ms.
 
-Things to get right (from contracts/README.md)
-  * conf.set("textinputformat.record.delimiter", "\\n") and strip a trailing \\r, so lines end
-    at \\n only. Each batch folder holds 1 or 2 pieces; add the folder as the input path.
-  * Use Contracts.envelope.matcher(line).matches(). Month not in Contracts.months -> malformed.
-  * Missing parts '' (never null); bytes '-' -> 0; all counts long.
-  * Q2: top 20 by request_count desc, then resource_path in byte order (compare UTF-8 bytes or
-    use Text's raw byte comparator). Q3 error = status 400-599; keep hours with zero errors.
-  * Keep parsed rows as a SequenceFile (or tab text written with CopyText) so 0x01 bytes and
-    tabs inside request lines survive.
-  * Use a single reducer (job.setNumReduceTasks(1)) for outputs whose order or top-N matters.
+For Q2 and Q3 (Tushaar)
+  * Input: parsed_input is one batch folder or the glob .../parsed/batch_* (whole run). Read it
+    with SequenceFileInputFormat; each value is an etl.mr.LogRecord (NullWritable key). Q1Job is
+    the pattern to copy: same input, combiner, one reducer, CopyText.row(...) output lines.
+  * Q2: top 20 by request_count desc, then resource_path in byte order (compare UTF-8 bytes,
+    e.g. with Text's raw comparator), then distinct hosts for those 20 only.
+  * Q3: error = status 400-599 (LogRecord.isError()); keep hours with zero errors; error_rate =
+    errors / total as a double.
+  * Whole-run results must be computed over all parsed rows, never added up from batch outputs.
+  * Use a single reducer (job.setNumReduceTasks(1)) where order or top-N matters.
+  * Output folders must not exist yet: hc.clear_output(out_dir / 'q2.tsv') first, as _q1 does.
 """
 from __future__ import annotations
 
 import shutil
 from pathlib import Path
-from typing import Optional
+from typing import Dict, Optional
 
 from ..engine import BatchResult, BatchSpec, Engine, RunContext
 from . import hadoop_common as hc
@@ -88,22 +94,56 @@ class MapReduceEngine(Engine):
 
     # ------------------------------------------------------------------ Person A: parse one batch
     def process_batch(self, spec: BatchSpec) -> BatchResult:
-        """TODO (Sahiti):
-        1. Write mapreduce/src/etl/mr/ParseJob.java: map-only job over hc.container_path(spec.input_dir)
-           that writes parsed rows to self.parsed_path(b), malformed lines to self.malformed_path(b)
-           (MultipleOutputs) and records read / valid / malformed as job counters or a counts file.
-        2. Write malformed.tsv (raw line, CopyText) and Q1 (Q1Job) into spec.output_dir.
-        3. Q2 and Q3 (q2.tsv, q3.tsv) come from Tushaar's jobs: agree on one helper, e.g.
-           self._queries(input_glob, out_dir, label), used by both process_batch and finalize.
-        Run each job with: ms['parse'] = self._job('etl.mr.ParseJob', in_path, out_path, label=...)
-        """
-        raise NotImplementedError("MapReduce process_batch: Sahiti's part (ingestion, parsing, Q1)")
+        """Parses one batch with ParseJob, then runs Q1-Q3 over this batch's parsed rows."""
+        b = spec.batch_id
+        label = f"batch_{b:06d}"
+        work = spec.output_dir / "_parse"                    # ParseJob's scratch folder, removed by the job
+        hc.clear_output(work)
+        for path in (spec.output_dir / "malformed.tsv", self.data_dir / "parsed" / f"batch_{b:06d}",
+                     self.data_dir / "malformed" / f"batch_{b:06d}"):
+            hc.clear_output(path)                            # a retried batch starts clean
+
+        ms: Dict[str, int] = {}
+        ms["parse"] = self._job(
+            "etl.mr.ParseJob", hc.container_path(spec.input_dir), hc.container_path(work),
+            self.parsed_path(b), self.malformed_path(b),
+            hc.container_path(spec.output_dir / "malformed.tsv"), hc.container_path(spec.output_dir / "counts"),
+            label=f"{label}_01_parse")
+        read, valid, malformed = hc.read_counts(spec.output_dir / "counts", 3, "MapReduce")
+
+        ms.update(self._queries(self.parsed_path(b), spec.output_dir, label))
+        return BatchResult(batch_id=b, records_read=read, valid_records=valid,
+                           malformed_records=malformed, engine_ms=ms)
+
+    def _queries(self, parsed_input: str, out_dir: Path, label: str) -> Dict[str, int]:
+        """Q1-Q3 over parsed_input (one batch folder, or the glob .../parsed/batch_* for the whole
+        run), written as q1.tsv, q2.tsv, q3.tsv into out_dir. Used by process_batch and finalize."""
+        ms = {"q1": self._q1(parsed_input, out_dir, label)}
+        ms["q2"] = self._q2(parsed_input, out_dir, label)
+        ms["q3"] = self._q3(parsed_input, out_dir, label)
+        return ms
+
+    def _q1(self, parsed_input: str, out_dir: Path, label: str) -> int:
+        """Q1 Daily Traffic Summary (Sahiti): one Q1Job."""
+        hc.clear_output(out_dir / "q1.tsv")
+        return self._job("etl.mr.Q1Job", parsed_input, hc.container_path(out_dir / "q1.tsv"),
+                         label=f"{label}_02_q1")
+
+    # ------------------------------------------------------------------ Person B: Q2, Q3
+    def _q2(self, parsed_input: str, out_dir: Path, label: str) -> int:
+        """TODO (Tushaar): Q2 Top 20 Requested Resources into out_dir / 'q2.tsv'. Return time in ms.
+        Read parsed_input with SequenceFileInputFormat; values are etl.mr.LogRecord (see Q1Job)."""
+        raise NotImplementedError("MapReduce Q2: Tushaar's part")
+
+    def _q3(self, parsed_input: str, out_dir: Path, label: str) -> int:
+        """TODO (Tushaar): Q3 Hourly Error Analysis into out_dir / 'q3.tsv'. Return time in ms."""
+        raise NotImplementedError("MapReduce Q3: Tushaar's part")
 
     # ------------------------------------------------------------------ Person B: whole run
     def finalize(self, run: RunContext) -> BatchResult:
-        """TODO (Tushaar): run the Q1-Q3 jobs over every batch folder under mr_data/parsed
-        (input path .../parsed/batch_*), write q1/q2/q3.tsv into run.final_output_dir and return
-        the whole-run counts (batch_id=None)."""
+        """TODO (Tushaar): self._queries(hc.container_path(self.data_dir / 'parsed') + '/batch_*',
+        run.final_output_dir, 'final') runs Q1-Q3 over every batch. Then return the whole-run counts
+        (batch_id=None), counted from mr_data/parsed and mr_data/malformed by a job, not by Python."""
         raise NotImplementedError("MapReduce finalize: Tushaar's part (Q2, Q3, whole-run results)")
 
     def cleanup(self, run: RunContext) -> None:

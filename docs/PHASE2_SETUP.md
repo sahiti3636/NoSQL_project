@@ -6,8 +6,8 @@ controller, batcher, loader, PostgreSQL schema, report and equivalence checker a
 
 | Engine | Person | Part | File(s) to write |
 | --- | --- | --- | --- |
-| MapReduce | Sahiti (A) | ingestion, parsing, malformed records, Q1 | `mapreduce/src/etl/mr/ParseJob.java`, `Q1Job.java`; `process_batch` in [etl/engines/mapreduce.py](../etl/engines/mapreduce.py) |
-| MapReduce | Tushaar (B) | Q2, Q3, whole-run results, cleanup | `Q2*.java`, `Q3*.java`; `finalize` in [etl/engines/mapreduce.py](../etl/engines/mapreduce.py) |
+| MapReduce | Sahiti (A) | ingestion, parsing, malformed records, Q1 | **Done:** `ParseJob.java`, `Q1Job.java`, `LogRecord.java`, `LongPair.java`; `process_batch`, `_queries`, `_q1` in [etl/engines/mapreduce.py](../etl/engines/mapreduce.py) |
+| MapReduce | Tushaar (B) | Q2, Q3, whole-run results, cleanup | `Q2*.java`, `Q3*.java`; `_q2`, `_q3`, `finalize` in [etl/engines/mapreduce.py](../etl/engines/mapreduce.py) |
 | Pig | Aman (C) | ingestion, parsing, malformed records, Q1 | `process_batch` in [etl/engines/pig.py](../etl/engines/pig.py) |
 | Pig | Prajwal (D) | Q2, Q3, whole-run results, cleanup | `finalize` in [etl/engines/pig.py](../etl/engines/pig.py) |
 
