@@ -1,4 +1,4 @@
-# Setup (Phase 1: PostgreSQL + MongoDB + Hive)
+# Setup (PostgreSQL + MongoDB + Hive, and Pig + MapReduce for Phase 2)
 
 Everything runs in Docker, so every team member gets the same versions. About 15 minutes the first time.
 
@@ -34,11 +34,11 @@ wc -l data/NASA_access_log_Jul95 data/NASA_access_log_Aug95
 ## 3. Start the services
 
 ```bash
-docker compose -f docker-compose.yml -f compose.lock.yml up -d --wait --wait-timeout 360
+docker compose -f docker-compose.yml -f compose.lock.yml up -d --build --wait --wait-timeout 600
 docker compose ps
 ```
 
-All three must show **healthy**. The first start downloads about 4.6 GB of images.
+All four must show **healthy**. The first start downloads about 4.6 GB of images and builds the Phase 2 `hadoop` container (Pig and MapReduce, about 490 MB more), which takes several minutes once. To start only some services, name them, for example `up -d --wait postgres mongodb`.
 
 `compose.lock.yml` pins each image to an exact version (MongoDB 7.0.48, PostgreSQL 15.20, Hive 4.0.1), because tags like `mongo:7` move over time. The pins work on both Windows (amd64) and Apple Silicon Macs (arm64). Always pass both `-f` files when starting or recreating containers. `ps`, `exec`, `logs` and `stop` work with plain `docker compose`.
 
@@ -47,6 +47,7 @@ All three must show **healthy**. The first start downloads about 4.6 GB of image
 | PostgreSQL 15 | `localhost:5433`, database `nasa_etl` | user `etl`, password `etl` |
 | MongoDB 7 | `mongodb://localhost:27017` | none |
 | Hive 4.0.1 | `jdbc:hive2://localhost:10000/` (web UI: http://localhost:10002) | none |
+| Pig 0.18 + MapReduce (Hadoop 3.3.6) | `docker compose exec hadoop bash` (no server; local mode) | none |
 
 Inside the containers, the raw logs are at `/input`, the contract files at `/contracts`, and Hive reads and writes batch folders under `/runs` (shared with `./runs` on your laptop).
 
@@ -122,7 +123,9 @@ Database tests for Q2, Q3 and the checker (needs the containers running):
 .venv/bin/python -m unittest discover -s tests/integration -p test_person_b.py -v
 ```
 
-## 7. Writing an engine (Hive and MongoDB teams)
+## 7. Writing an engine
+
+**Phase 2 (Pig and MapReduce):** the shared setup is done. Start with [docs/PHASE2_SETUP.md](docs/PHASE2_SETUP.md): who writes what, the checks to run, and what "done" means.
 
 Read `etl/engine.py` (the interface, about 100 lines) and `etl/engines/reference.py` (a complete working example). Then fill in your file in `etl/engines/`. The controller already does everything else:
 

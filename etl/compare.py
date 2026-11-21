@@ -1,4 +1,5 @@
-"""Read-only SQL equivalence check for explicit Hive and MongoDB run IDs.
+"""Read-only SQL equivalence check for two explicit run IDs of different pipelines
+(any two of hive, mongodb, pig, mapreduce).
 
 python -m etl.compare --left-run HIVE_UUID --right-run MONGO_UUID
 Add --allow-reference only for a development check against the test-only engine.
@@ -14,6 +15,7 @@ import psycopg
 from psycopg.rows import dict_row
 
 from . import config, contracts
+from .engine import PIPELINES
 
 
 class ComparisonError(ValueError):
@@ -31,10 +33,12 @@ def compare_runs(conn, left_run: str, right_run: str, *, allow_reference=False) 
             raise ComparisonError("Both run IDs must exist in this PostgreSQL database.")
         left, right = runs[left_id], runs[right_id]
         pair = {left['pipeline'], right['pipeline']}
-        if pair != {'hive', 'mongodb'} and not (
-            allow_reference and pair in ({'reference', 'mongodb'}, {'reference', 'hive'})
-        ):
-            raise ComparisonError("Expected Hive + MongoDB, or --allow-reference with one real engine.")
+        real = set(PIPELINES)
+        if not ((len(pair) == 2 and pair <= real) or (
+            allow_reference and 'reference' in pair and len(pair - {'reference'} & real) == 1
+        )):
+            raise ComparisonError("Expected two different pipelines (hive, mongodb, pig, mapreduce), "
+                                  "or --allow-reference with one real engine.")
         for run in (left, right):
             if run['status'] != 'succeeded':
                 raise ComparisonError(f"Run {run['run_id']} is {run['status']}, not succeeded.")

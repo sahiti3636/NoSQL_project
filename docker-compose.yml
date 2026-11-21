@@ -1,4 +1,4 @@
-# NASA Log ETL - Phase 1 environment (PostgreSQL + MongoDB + Hive)
+# NASA Log ETL environment: PostgreSQL + MongoDB + Hive (Phase 1) + Pig/MapReduce (Phase 2)
 #   docker compose up -d          start everything
 #   docker compose ps             all three should say "healthy"
 #   docker compose down           stop (data is kept in volumes)
@@ -58,6 +58,26 @@ services:
       timeout: 60s
       retries: 20
       start_period: 60s
+
+  # Phase 2: Pig and MapReduce (Hadoop 3.3.6 local mode). Built locally from docker/hadoop/Dockerfile,
+  # which pins every base image and download. Idle until a pipeline runs `pig` or `hadoop jar` in it.
+  hadoop:
+    build: ./docker/hadoop
+    image: nasa-etl-hadoop:phase2
+    environment:
+      PIG_HEAPSIZE: "2048"            # MB, for Pig in local mode
+      HADOOP_HEAPSIZE_MAX: "2g"       # for `hadoop jar` (MapReduce local mode)
+    volumes:
+      - ./data:/input:ro              # raw NASA logs (never modified)
+      - ./contracts:/contracts:ro
+      - ./mapreduce:/mapreduce:ro     # MapReduce Java sources, compiled at the start of each run
+      - ./runs:/runs                  # batch folders in, result files out
+    healthcheck:
+      test: ["CMD-SHELL", "pig -version > /dev/null 2>&1 && javac -version > /dev/null 2>&1 && hadoop version > /dev/null 2>&1"]
+      interval: 15s
+      timeout: 60s
+      retries: 10
+      start_period: 20s
 
 volumes:
   pg_data:

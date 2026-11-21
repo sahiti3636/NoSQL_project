@@ -7,7 +7,7 @@ DAS 839 NoSQL Systems, end-semester project.
 | Phase | Engines | Status |
 | --- | --- | --- |
 | 1 | **MongoDB**, **Hive** | Done: both engines give identical results on every batch and the whole run |
-| 2 | Pig, MapReduce | Planned, on the same contracts and controller |
+| 2 | Pig, MapReduce | Shared setup ready (container, engine skeletons, checks); engines in progress. See [docs/PHASE2_SETUP.md](docs/PHASE2_SETUP.md) |
 
 ![Phase 1 architecture](docs/architecture.png)
 

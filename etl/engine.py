@@ -102,6 +102,8 @@ class Engine(abc.ABC):
 ENGINES = {
     "hive": "etl.engines.hive:HiveEngine",
     "mongodb": "etl.engines.mongodb:MongoEngine",
+    "pig": "etl.engines.pig:PigEngine",                     # Phase 2: Aman + Prajwal
+    "mapreduce": "etl.engines.mapreduce:MapReduceEngine",   # Phase 2: Sahiti + Tushaar
     "reference": "etl.engines.reference:ReferenceEngine",   # TEST ONLY - not one of the 4 pipelines
 }
 
