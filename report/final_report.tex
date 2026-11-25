@@ -114,7 +114,7 @@ month is not in \code{months.tsv}; malformed lines are kept with their raw text 
 dropped. The request regex splits method, path and protocol; when it fails, the fallback takes the
 whole request as the path. \code{log\_date}, \code{log\_hour} and \code{log\_timestamp}
 (\code{1995-07-01 00:00:01 -0400}) are sliced from the groups: date functions would convert time
-zones (MongoDB's \code{\$dateFromString} shifts every hour by 4). Missing parts are \code{''},
+zones (MongoDB's \code{\$dateFromString} shifts every hour by 4). Missing parts are \code{\textquotesingle\textquotesingle},
 never NULL; byte counts are 64-bit; invalid UTF-8 becomes U+FFFD, as Hadoop's \code{Text} does.
 
 Edge cases found in the real data drove three rules: files are split on \code{\textbackslash n}
@@ -143,6 +143,33 @@ A smoke test parses 2,038 such lines in every engine and compares every field wi
 message and still cleans up the engine; reports show only successful runs, and a retry is a new run.
 \textbf{No batching:} \code{-{}-no-batch} puts all 3,461,613 lines into batch~1, so each engine can
 be measured without any per-batch cost.
+
+\section{Major Design Decisions}
+Table~\ref{tab:decisions} collects the decisions that shaped every engine.
+
+\begin{table}[h]
+\caption{Major design decisions}
+\label{tab:decisions}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}L{0.40\columnwidth}L{0.55\columnwidth}@{}}
+\toprule
+Decision & Why \\
+\midrule
+Parse inside each engine; Python only moves bytes & The comparison must measure the engines, and the brief forbids preprocessing \\
+Shared contract files, loaded at run time & One copy of every rule; regexes written so Java, JavaScript and Python agree \\
+Batch = N unchanged lines; files never joined & Same input for every engine; the truncated last July line stays visible \\
+Binary storage of parsed rows (ORC, \texttt{BinStorage}, SequenceFiles) & Byte \texttt{0x01} and tabs in real request lines break text formats \\
+Dates and timestamps sliced from text & Date functions convert time zones and shift hours \\
+Whole-run results recomputed, never summed & Distinct hosts and top-20 lists cannot be added across batches \\
+Q2: top 20 first, then hosts; ties in byte order & Exact and cheap; the same answer in every engine and in SQL \\
+PostgreSQL \texttt{COPY}, one transaction per batch & Fast loading; a failed batch leaves nothing half-written \\
+Python answer key + row-by-row checker & Equivalence is proven on data, not assumed \\
+Docker with pinned images & Same versions on every laptop; both engines of a comparison on one machine \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Pipeline Implementations}
 \textbf{MongoDB.} Lines are inserted unparsed as \code{\{b, n, raw\}} documents; one aggregation
@@ -212,6 +239,34 @@ one whole-run result set per run via \code{UNIQUE NULLS NOT DISTINCT}). Views fe
 the comparison (\code{v\_run\_report}, \code{v\_q2\_final} with SQL ranking,
 \code{v\_pipeline\_comparison}, \code{v\_equivalence}).
 
+\section{Reporting Module}
+\code{python -m etl report} reads only PostgreSQL. For a run it shows the pipeline, status,
+start and finish, runtime, batch size (or ``no batching''), number of batches, average batch size
+and record counts; per-batch counts and times with each query's time; and the Q1--Q3 results
+(\code{--html} writes every row as a web page). \code{--compare} lists runtimes per engine and batch
+size and how many distinct answers each query produced. An excerpt for a Pig run:
+\begin{lstlisting}[columns=fixed,basicstyle=\ttfamily\tiny]
+Pipeline            pig
+Runtime             137.11 s  (first byte read -> final PostgreSQL commit)
+Batch size          500,000 lines
+Batches             7
+Average batch size  494,516.14
+Records             3,461,613  (3,461,612 valid, 1 malformed)
+query  name                     final query time
+Q1     Daily Traffic Summary    7.32 s
+Q2     Top Requested Resources  15.38 s
+Q3     Hourly Error Analysis    10.48 s
+batch_id  records  valid    malformed  batch time  q1      q2      q3
+       1  500,000  500,000          0  13.89 s     1.37 s  3.12 s  1.87 s
+\end{lstlisting}
+\textbf{Reporting suitability.} Because every engine writes the same four files in the same
+format, the database, the report and the comparison are identical whatever engine ran, and every
+engine reports per-batch and per-query times. The engines differ only in how they produce those
+files: MongoDB streams rows to Python, Hive writes them with an escaping \code{ROW FORMAT}, while Pig
+and MapReduce write folders of part files and need explicit \code{COPY} escaping. Per-query timing
+was natural in MongoDB and Hive (one call per query) and needed a driver in Pig and MapReduce to
+keep one JVM per batch.
+
 \section{Correctness and Equivalence}
 A plain Python implementation is the answer key. Every run is checked three ways:
 \begin{itemize}
@@ -267,6 +322,35 @@ before every shuffle and binary records read back without re-parsing. MongoDB (9
 inserting 3.46M documents, Pig (114.3~s) and Hive (149~s) by planning overhead and their
 general-purpose operators.
 
+\textbf{Per-query time.} Table~\ref{tab:qtimes} splits the 500k runs. Per batch, the queries are
+cheapest in MongoDB and MapReduce; Hive's times include starting a beeline client for every query.
+Q2 is the most expensive query everywhere, since it needs a second pass over the rows of the top 20
+paths. The rest of a batch is parsing and loading (and, for Pig and MapReduce, starting the JVM).
+
+\begin{table}[h]
+\caption{Query times (s) at 500k: average per batch / whole run}
+\label{tab:qtimes}
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+ & MongoDB & Hive & MapReduce & Pig \\
+\midrule
+Q1 & 0.5 / 2.4 & 2.0 / 2.2 & 1.0 / 5.1 & 1.3 / 7.3 \\
+Q2 & 1.0 / 6.5 & 3.0 / 8.2 & 1.6 / 7.4 & 3.1 / 15.4 \\
+Q3 & 0.6 / 3.6 & 2.1 / 2.1 & 0.7 / 3.3 & 1.8 / 10.5 \\
+Rest of a batch & 9.3 & 20.2 & 3.2 & 7.5 \\
+Whole batch & 11.3 & 27.3 & 6.6 & 13.6 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Choosing a batch size.} For Hive, Pig and MapReduce, use the largest batch that fits in
+memory: each extra batch adds its fixed cost. For MongoDB the size hardly matters, so smaller
+batches can be used when earlier per-batch results are wanted. No batching is fastest for the
+Hadoop-based engines but gives no intermediate results and holds the whole input in one batch.
+
 \textbf{Measured improvements} (same laptop, 500k): \code{RunJobs} (one JVM per batch) cut
 MapReduce from 72.9~s to 65.6~s; one Pig session per batch, 100~ms job polling and a top-20 step
 without a sampling job cut Pig from 187.8~s to 137.1~s; ranking paths before counting hosts cut
@@ -291,7 +375,7 @@ engine and was replaced by a check that starts none.
 \midrule
 Correctness & equivalent & equivalent & equivalent & equivalent \\
 Runtime & flat $\approx$97~s; best for small batches & slowest at small batches; 8.1~s per batch & fastest with large batches (51~s) & 4.3~s per batch; 114~s unbatched \\
-Difficulty & medium: aggregation pipelines, collation & medium: SerDe, ORC, escaping & highest: Java jobs, Writables, job chains & medium: escaping, \texttt{BinStorage}, ordering \\
+Difficulty (lines of code) & medium (255): aggregation pipelines, collation & medium (235): SerDe, ORC, escaping & highest (1,230 Python + Java): Writables, job chains & medium (365): escaping, \texttt{BinStorage}, ordering \\
 Suitability & interactive, incremental loads & SQL users, large batch reports & large, fixed, performance-critical jobs & quick dataflow scripts over raw files \\
 \bottomrule
 \end{tabular}
@@ -300,7 +384,7 @@ Suitability & interactive, incremental loads & SQL users, large batch reports & 
 \textbf{Correctness} was equal by construction: the shared contracts and the checker found no
 difference anywhere. \textbf{Difficulty} differed most in the details: every Hadoop-based engine
 needed binary storage for the parsed rows, an escape step for PostgreSQL, and care with line
-endings and string ordering; MapReduce needed the most code. \textbf{Suitability for
+endings and string ordering; MapReduce needed the most code: about 1,230 lines of Python and Java against 235 (Hive), 255 (MongoDB) and 365 (Pig). \textbf{Suitability for
 semi-structured logs:} MongoDB suits small, frequent batches and ad-hoc questions; Hive suits SQL
 users and large periodic batches; MapReduce gives the best throughput for a fixed workload at the
 cost of code; Pig is the quickest to write for dataflow over raw text.
