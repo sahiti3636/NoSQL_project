@@ -1,0 +1,394 @@
+[
+  {
+    "round": 1,
+    "pipeline": "mongodb",
+    "size": "100000",
+    "runtime_s": 97.23,
+    "run_id": "7068b74d-f8a8-4759-abba-a505779a0a78",
+    "reference_passed": true,
+    "rows": {
+      "q1": 295,
+      "q2": 20,
+      "q3": 1369
+    },
+    "equivalent_to_mongodb": null
+  },
+  {
+    "round": 1,
+    "pipeline": "hive",
+    "size": "100000",
+    "runtime_s": 425.14,
+    "run_id": "ce9d9ce5-a932-495d-8c41-5c886ac1acff",
+    "reference_passed": true,
+    "rows": {
+      "q1": 295,
+      "q2": 20,
+      "q3": 1369
+    },
+    "equivalent_to_mongodb": true,
+    "compare_rows": {
+      "q1": [
+        731,
+        0
+      ],
+      "q2": [
+        720,
+        0
+      ],
+      "q3": [
+        2772,
+        0
+      ]
+    }
+  },
+  {
+    "round": 1,
+    "pipeline": "mapreduce",
+    "size": "100000",
+    "runtime_s": 111.67,
+    "run_id": "9640ffb3-76ac-49c3-a75e-67efbe6a4d48",
+    "reference_passed": true,
+    "rows": {
+      "q1": 295,
+      "q2": 20,
+      "q3": 1369
+    },
+    "equivalent_to_mongodb": true,
+    "compare_rows": {
+      "q1": [
+        731,
+        0
+      ],
+      "q2": [
+        720,
+        0
+      ],
+      "q3": [
+        2772,
+        0
+      ]
+    }
+  },
+  {
+    "round": 1,
+    "pipeline": "hive",
+    "size": "500000",
+    "runtime_s": 207.15,
+    "run_id": "97571b10-fc4a-49f1-ac5b-927cd70180e1",
+    "reference_passed": true,
+    "rows": {
+      "q1": 295,
+      "q2": 20,
+      "q3": 1369
+    },
+    "equivalent_to_mongodb": true,
+    "compare_rows": {
+      "q1": [
+        614,
+        0
+      ],
+      "q2": [
+        160,
+        0
+      ],
+      "q3": [
+        2744,
+        0
+      ]
+    }
+  },
+  {
+    "round": 1,
+    "pipeline": "mapreduce",
+    "size": "500000",
+    "runtime_s": 65.58,
+    "run_id": "0e1e6acd-ead3-4466-9003-573a44a13a08",
+    "reference_passed": true,
+    "rows": {
+      "q1": 295,
+      "q2": 20,
+      "q3": 1369
+    },
+    "equivalent_to_mongodb": true,
+    "compare_rows": {
+      "q1": [
+        614,
+        0
+      ],
+      "q2": [
+        160,
+        0
+      ],
+      "q3": [
+        2744,
+        0
+      ]
+    }
+  },
+  {
+    "round": 1,
+    "pipeline": "mongodb",
+    "size": "1000000",
+    "runtime_s": 99.8,
+    "run_id": "c0cd3a04-90cb-4ac3-a5b8-e3bde1553960",
+    "reference_passed": true,
+    "rows": {
+      "q1": 295,
+      "q2": 20,
+      "q3": 1369
+    },
+    "equivalent_to_mongodb": null
+  },
+  {
+    "round": 1,
+    "pipeline": "hive",
+    "size": "1000000",
+    "runtime_s": 171.38,
+    "run_id": "506f88da-2414-4ad1-95a8-c51b86eac87f",
+    "reference_passed": true,
+    "rows": {
+      "q1": 295,
+      "q2": 20,
+      "q3": 1369
+    },
+    "equivalent_to_mongodb": true,
+    "compare_rows": {
+      "q1": [
+        602,
+        0
+      ],
+      "q2": [
+        100,
+        0
+      ],
+      "q3": [
+        2741,
+        0
+      ]
+    }
+  },
+  {
+    "round": 1,
+    "pipeline": "mapreduce",
+    "size": "1000000",
+    "runtime_s": 56.57,
+    "run_id": "982aad14-dbde-4ef8-89e5-4907f2b67d59",
+    "reference_passed": true,
+    "rows": {
+      "q1": 295,
+      "q2": 20,
+      "q3": 1369
+    },
+    "equivalent_to_mongodb": true,
+    "compare_rows": {
+      "q1": [
+        602,
+        0
+      ],
+      "q2": [
+        100,
+        0
+      ],
+      "q3": [
+        2741,
+        0
+      ]
+    }
+  },
+  {
+    "round": 1,
+    "pipeline": "mongodb",
+    "size": "none",
+    "runtime_s": 97.08,
+    "run_id": "3c36925b-4050-42af-bac8-fd9bbe602def",
+    "reference_passed": true,
+    "rows": {
+      "q1": 295,
+      "q2": 20,
+      "q3": 1369
+    },
+    "equivalent_to_mongodb": null
+  },
+  {
+    "round": 1,
+    "pipeline": "hive",
+    "size": "none",
+    "runtime_s": 149.27,
+    "run_id": "c4c8a04a-b25a-4653-958a-0449b321ffdc",
+    "reference_passed": true,
+    "rows": {
+      "q1": 295,
+      "q2": 20,
+      "q3": 1369
+    },
+    "equivalent_to_mongodb": true,
+    "compare_rows": {
+      "q1": [
+        590,
+        0
+      ],
+      "q2": [
+        40,
+        0
+      ],
+      "q3": [
+        2738,
+        0
+      ]
+    }
+  },
+  {
+    "round": 1,
+    "pipeline": "mapreduce",
+    "size": "none",
+    "runtime_s": 51.23,
+    "run_id": "54ca64c2-97f9-4887-9919-9982041e76e4",
+    "reference_passed": true,
+    "rows": {
+      "q1": 295,
+      "q2": 20,
+      "q3": 1369
+    },
+    "equivalent_to_mongodb": true,
+    "compare_rows": {
+      "q1": [
+        590,
+        0
+      ],
+      "q2": [
+        40,
+        0
+      ],
+      "q3": [
+        2738,
+        0
+      ]
+    }
+  },
+  {
+    "round": 1,
+    "pipeline": "mongodb",
+    "size": "500000",
+    "runtime_s": 94.78,
+    "run_id": "08e034fd-4d7d-4fed-8cd4-fa45f0f308f5",
+    "reference_passed": true,
+    "rows": {
+      "q1": 295,
+      "q2": 20,
+      "q3": 1369
+    },
+    "equivalent_to_mongodb": null
+  },
+  {
+    "round": 1,
+    "pipeline": "pig",
+    "size": "100000",
+    "runtime_s": 261.42,
+    "run_id": "4501fc44-b11e-4f23-9edd-1e1108e25375",
+    "reference_passed": true,
+    "rows": {
+      "q1": 295,
+      "q2": 20,
+      "q3": 1369
+    },
+    "equivalent_to_mongodb": true,
+    "compare_rows": {
+      "q1": [
+        731,
+        0
+      ],
+      "q2": [
+        720,
+        0
+      ],
+      "q3": [
+        2772,
+        0
+      ]
+    }
+  },
+  {
+    "round": 1,
+    "pipeline": "pig",
+    "size": "1000000",
+    "runtime_s": 128.88,
+    "run_id": "df5db37a-40a5-4a37-872b-336f45d8eadc",
+    "reference_passed": true,
+    "rows": {
+      "q1": 295,
+      "q2": 20,
+      "q3": 1369
+    },
+    "equivalent_to_mongodb": true,
+    "compare_rows": {
+      "q1": [
+        602,
+        0
+      ],
+      "q2": [
+        100,
+        0
+      ],
+      "q3": [
+        2741,
+        0
+      ]
+    }
+  },
+  {
+    "round": 1,
+    "pipeline": "pig",
+    "size": "none",
+    "runtime_s": 114.34,
+    "run_id": "53580065-e34a-443e-b8a5-7b7316e4aecb",
+    "reference_passed": true,
+    "rows": {
+      "q1": 295,
+      "q2": 20,
+      "q3": 1369
+    },
+    "equivalent_to_mongodb": true,
+    "compare_rows": {
+      "q1": [
+        590,
+        0
+      ],
+      "q2": [
+        40,
+        0
+      ],
+      "q3": [
+        2738,
+        0
+      ]
+    }
+  },
+  {
+    "round": 1,
+    "pipeline": "pig",
+    "size": "500000",
+    "runtime_s": 137.11,
+    "run_id": "18ab2f24-0256-43a0-8604-7bf313b03151",
+    "reference_passed": true,
+    "rows": {
+      "q1": 295,
+      "q2": 20,
+      "q3": 1369
+    },
+    "equivalent_to_mongodb": true,
+    "compare_rows": {
+      "q1": [
+        614,
+        0
+      ],
+      "q2": [
+        160,
+        0
+      ],
+      "q3": [
+        2744,
+        0
+      ]
+    }
+  }
+]

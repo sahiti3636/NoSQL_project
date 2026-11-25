@@ -1,6 +1,7 @@
 """Command-line interface.
 
     python -m etl run --pipeline hive --batch-size 500000
+    python -m etl run --pipeline hive --no-batch                    (whole input as one batch)
     python -m etl run --pipeline reference --batch-size 500000      (test-only engine)
     python -m etl pipelines
     python -m etl report [--run-id ID | --pipeline NAME] [--rows N|all] [--html FILE] [--list] [--compare]
@@ -18,7 +19,10 @@ def main(argv=None) -> int:
 
     r = sub.add_parser("run", help="run the full ETL with one pipeline")
     r.add_argument("--pipeline", required=True, choices=sorted(ENGINES))
-    r.add_argument("--batch-size", required=True, type=int, help="input log lines per batch")
+    size = r.add_mutually_exclusive_group(required=True)
+    size.add_argument("--batch-size", type=int, help="input log lines per batch")
+    size.add_argument("--no-batch", action="store_true",
+                      help="no batching: the whole input is one batch (batch size = number of lines)")
     r.add_argument("--input", nargs="+", type=Path,
                    help="input files in order (default: the July and August logs in data/)")
     r.add_argument("--keep-files", action="store_true",
@@ -53,11 +57,16 @@ def main(argv=None) -> int:
         return 0
 
     from .runner import run                   # imported late so `pipelines` works without a DB driver
-    s = run(args.pipeline, args.batch_size, args.input, keep_files=args.keep_files)
+    if args.batch_size is not None and args.batch_size < 1:
+        p.error("--batch-size must be at least 1")
+    s = run(args.pipeline, None if args.no_batch else args.batch_size, args.input, keep_files=args.keep_files)
     print(f"\nrun {s.run_id} succeeded")
     print(f"  pipeline          {s.pipeline}")
     print(f"  records           {s.total_records:,} ({s.valid_records:,} valid, {s.malformed_records:,} malformed)")
-    print(f"  batches           {s.num_batches} x {s.batch_size:,} (average {s.avg_batch_size:,.2f})")
+    if args.no_batch:
+        print(f"  batches           1 (no batching: all {s.total_records:,} lines in one batch)")
+    else:
+        print(f"  batches           {s.num_batches} x {s.batch_size:,} (average {s.avg_batch_size:,.2f})")
     print(f"  runtime           {s.runtime_ms / 1000:,.2f} s")
     print(f"  full report       python -m etl report --run-id {s.run_id}")
     return 0

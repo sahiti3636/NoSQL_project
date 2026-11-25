@@ -1,0 +1,7 @@
+Comparing pig vs mapreduce; batch size 500,000
+Scope: every batch and final output (compared inside PostgreSQL)
+  q1: 614 / 614 rows; 0 differences
+  q2: 160 / 160 rows; 0 differences
+  q3: 2744 / 2744 rows; 0 differences
+  malformed records: 0 differences
+EQUIVALENT

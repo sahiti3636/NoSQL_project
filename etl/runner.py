@@ -67,18 +67,31 @@ def _check(result: BatchResult, expected_records: int, label: str) -> None:
                                 f"({result.malformed_records}) != read ({result.records_read})")
 
 
-def run(pipeline: str, batch_size: int, input_files: Optional[List[Path]] = None,
+# Batch size used while a run without batching is in progress: the largest value the etl_run
+# column holds, far above any input, so the batcher puts every line into batch 1.
+NO_BATCHING = 2**31 - 1
+
+
+def run(pipeline: str, batch_size: Optional[int], input_files: Optional[List[Path]] = None,
         keep_files: bool = False, log=print) -> RunSummary:
+    """Runs the whole ETL with one pipeline. batch_size=None means no batching: the whole input
+    is one batch, and the run's batch size is recorded as the number of input lines."""
     input_files = [Path(p) for p in (input_files or config.DEFAULT_INPUT_FILES)]
     engine = load_engine(pipeline)
     run_id = str(uuid.uuid4())
     run_dir = config.RUNS_DIR / run_id
+    no_batching = batch_size is None
+    if no_batching:
+        batch_size = NO_BATCHING          # larger than any input: every line lands in batch 1
     ctx = RunContext(run_id=run_id, pipeline=pipeline, batch_size=batch_size, run_dir=run_dir)
     batcher = Batcher(input_files, batch_size, run_dir)          # checks the files exist
 
     loader = Loader(config.PG_DSN)
-    loader.start_run(run_id, pipeline, batch_size, _now(), _environment(pipeline))
-    log(f"run {run_id}  pipeline={pipeline}  batch_size={batch_size:,}"
+    environment = _environment(pipeline)
+    environment["batching"] = "none (whole input as one batch)" if no_batching else f"{batch_size} lines"
+    loader.start_run(run_id, pipeline, batch_size, _now(), environment)
+    log(f"run {run_id}  pipeline={pipeline}  "
+        + ("no batching (the whole input is one batch)" if no_batching else f"batch_size={batch_size:,}")
         + ("   [TEST-ONLY engine]" if engine.test_only else ""))
     valid = malformed = 0
     try:
@@ -117,9 +130,11 @@ def run(pipeline: str, batch_size: int, input_files: Optional[List[Path]] = None
         runtime_ms = int((time.monotonic() - t0) * 1000)          # <- stops after the COMMIT
         finished_at = _now()
 
+        if no_batching:
+            batch_size = batcher.total_records                   # one batch holding every line
         loader.mark_succeeded(run_id, started_at, finished_at, runtime_ms, batcher.total_records,
                               valid, malformed, len(ctx.batch_ids), batcher.manifest,
-                              batcher.input_sha256)
+                              batcher.input_sha256, batch_size if no_batching else None)
         return RunSummary(run_id, pipeline, batch_size, len(ctx.batch_ids), batcher.total_records,
                           valid, malformed, runtime_ms)
     except BaseException as exc:

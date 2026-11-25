@@ -1,0 +1,35 @@
+Runtime by pipeline and batch size (successful runs)
+pipeline   batch size  runs  avg runtime  best runtime  batches  avg batch size
+---------  ----------  ----  -----------  ------------  -------  --------------
+hive          100,000     4  425.17 s     400.41 s           35  98,903.23
+mapreduce     100,000     1  111.67 s     111.67 s           35  98,903.23
+mongodb       100,000     4  102.76 s     97.23 s            35  98,903.23
+pig           100,000     1  261.42 s     261.42 s           35  98,903.23
+hive          500,000     8  188.54 s     156.25 s            7  494,516.14
+mapreduce     500,000     1  65.58 s      65.58 s             7  494,516.14
+mongodb       500,000     7  103.04 s     94.78 s             7  494,516.14
+pig           500,000     1  137.11 s     137.11 s            7  494,516.14
+hive        1,000,000     4  148.28 s     133.73 s            4  865,403.25
+mapreduce   1,000,000     1  56.57 s      56.57 s             4  865,403.25
+mongodb     1,000,000     4  108.82 s     99.80 s             4  865,403.25
+pig         1,000,000     1  128.88 s     128.88 s            4  865,403.25
+hive        3,461,613     1  149.27 s     149.27 s            1  3,461,613.00
+mapreduce   3,461,613     1  51.23 s      51.23 s             1  3,461,613.00
+mongodb     3,461,613     1  97.08 s      97.08 s             1  3,461,613.00
+pig         3,461,613     1  114.34 s     114.34 s            1  3,461,613.00
+
+Do the pipelines give the same answers? (same input, same batch size)
+batch size  query  pipelines                                 distinct answers  all agree
+----------  -----  ----------------------------------------  ----------------  ---------
+   100,000  Q1     hive, mapreduce, mongodb, pig                            1  yes
+   100,000  Q2     hive, mapreduce, mongodb, pig                            1  yes
+   100,000  Q3     hive, mapreduce, mongodb, pig                            1  yes
+   500,000  Q1     hive, mapreduce, mongodb, pig, reference                 1  yes
+   500,000  Q2     hive, mapreduce, mongodb, pig, reference                 1  yes
+   500,000  Q3     hive, mapreduce, mongodb, pig, reference                 1  yes
+ 1,000,000  Q1     hive, mapreduce, mongodb, pig, reference                 1  yes
+ 1,000,000  Q2     hive, mapreduce, mongodb, pig, reference                 1  yes
+ 1,000,000  Q3     hive, mapreduce, mongodb, pig, reference                 1  yes
+ 3,461,613  Q1     hive, mapreduce, mongodb, pig                            1  yes
+ 3,461,613  Q2     hive, mapreduce, mongodb, pig                            1  yes
+ 3,461,613  Q3     hive, mapreduce, mongodb, pig                            1  yes

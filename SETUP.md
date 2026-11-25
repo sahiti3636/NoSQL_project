@@ -1,14 +1,14 @@
-# Setup (PostgreSQL + MongoDB + Hive, and Pig + MapReduce for Phase 2)
+# Setup
 
-Everything runs in Docker, so every team member gets the same versions. About 15 minutes the first time.
+Everything runs in Docker, so every machine gets the same versions: PostgreSQL 15, MongoDB 7, Hive 4.0.1, and Pig 0.18 with MapReduce on Hadoop 3.3.6. About 20 minutes the first time.
 
-On **Windows**, follow [docs/PERSON_B.md](docs/PERSON_B.md) for PowerShell versions of these commands.
+On **Windows**, see [docs/WINDOWS.md](docs/WINDOWS.md) for the PowerShell versions of these commands.
 
 ## 1. Install
 
-- **Docker Desktop**, then in *Settings → Resources* give it **at least 6 GB of memory** (8 GB is better).
-- **Python 3** (any recent version; the smoke test uses only the standard library).
-- **Git Bash or WSL** if you are on Windows, to run the `.sh` scripts.
+- **Docker Desktop**, with **at least 6 GB of memory** in *Settings → Resources* (8 GB is better).
+- **Python 3** (any recent version).
+- **Git Bash or WSL** on Windows, to run the `.sh` scripts.
 
 ## 2. Get the code and the data
 
@@ -21,7 +21,7 @@ curl -o data/NASA_access_log_Aug95.gz https://ita.ee.lbl.gov/traces/NASA_access_
 gunzip -k data/*.gz
 ```
 
-Check the line counts. They must be exactly these, or your download is incomplete:
+Check the line counts; anything else means the download is incomplete:
 
 ```bash
 wc -l data/NASA_access_log_Jul95 data/NASA_access_log_Aug95
@@ -29,7 +29,7 @@ wc -l data/NASA_access_log_Jul95 data/NASA_access_log_Aug95
 #  1569898 data/NASA_access_log_Aug95
 ```
 
-`data/` and `runs/` are in `.gitignore`. Never commit the logs, and never edit them: the PDF forbids any change to the raw files.
+Decompression is the only change allowed to the logs. `data/` and `runs/` are git-ignored.
 
 ## 3. Start the services
 
@@ -38,112 +38,83 @@ docker compose -f docker-compose.yml -f compose.lock.yml up -d --build --wait --
 docker compose ps
 ```
 
-All four must show **healthy**. The first start downloads about 4.6 GB of images and builds the Phase 2 `hadoop` container (Pig and MapReduce, about 490 MB more), which takes several minutes once. To start only some services, name them, for example `up -d --wait postgres mongodb`.
+All four services must show **healthy**. The first start downloads about 4.6 GB of images and builds the `hadoop` container (Pig, MapReduce, JDK; about 490 MB more). To start only what one engine needs, name the services, for example `up -d --wait postgres mongodb` or `up -d --build --wait postgres hadoop`.
 
-`compose.lock.yml` pins each image to an exact version (MongoDB 7.0.48, PostgreSQL 15.20, Hive 4.0.1), because tags like `mongo:7` move over time. The pins work on both Windows (amd64) and Apple Silicon Macs (arm64). Always pass both `-f` files when starting or recreating containers. `ps`, `exec`, `logs` and `stop` work with plain `docker compose`.
+`compose.lock.yml` pins every image to an exact digest, and `docker/hadoop/Dockerfile` pins its base images and the Pig download, because tags like `mongo:7` move over time. The pins work on amd64 (Windows, Linux) and arm64 (Apple Silicon). Always pass both `-f` files when starting or recreating containers; `ps`, `exec`, `logs` and `stop` work with plain `docker compose`.
 
-| Service | Connect from your laptop | Login |
+| Service | From your laptop | Login |
 | --- | --- | --- |
 | PostgreSQL 15 | `localhost:5433`, database `nasa_etl` | user `etl`, password `etl` |
 | MongoDB 7 | `mongodb://localhost:27017` | none |
-| Hive 4.0.1 | `jdbc:hive2://localhost:10000/` (web UI: http://localhost:10002) | none |
-| Pig 0.18 + MapReduce (Hadoop 3.3.6) | `docker compose exec hadoop bash` (no server; local mode) | none |
+| Hive 4.0.1 | `jdbc:hive2://localhost:10000/` (web UI http://localhost:10002) | none |
+| Pig 0.18, MapReduce | `docker compose exec hadoop bash` (local mode, no server) | none |
 
-Inside the containers, the raw logs are at `/input`, the contract files at `/contracts`, and Hive reads and writes batch folders under `/runs` (shared with `./runs` on your laptop).
-
-PostgreSQL creates the `etl` schema from `sql/schema.sql` automatically on the **first** start only. After changing the schema, either reload it by hand:
+Inside the containers the raw logs are at `/input`, the contracts at `/contracts`, and batch folders under `/runs` (shared with `./runs` on the laptop). PostgreSQL creates the `etl` schema from `sql/schema.sql` on the **first** start only; to reload it after a change:
 
 ```bash
 docker compose exec -T postgres psql -U etl -d nasa_etl -v ON_ERROR_STOP=1 < sql/schema.sql
 ```
 
-or deliberately wipe everything with `docker compose down -v` and then run the start command above again. This deletes all saved runs in every database.
-
-## 4. Check your setup
-
-```bash
-./tests/smoke/run.sh
-```
-
-It must end with `SMOKE TEST PASSED`. It builds a sample of about 2,000 real log lines, including every odd one (binary bytes, a tab in a path, quotes inside requests, the truncated last line). It then parses the sample inside Hive and inside MongoDB using only `contracts/`, and checks both against the Python reference field by field.
-
-## 5. Python environment for the controller
+## 4. Python and checks
 
 ```bash
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
-.venv/bin/python -m unittest discover -s tests -v
+.venv/bin/python -m unittest discover -s tests                 # unit tests, no Docker needed
+./tests/smoke/run.sh                                           # SMOKE TEST PASSED
+.venv/bin/python scripts/check_phase2.py                       # PHASE 2 SETUP OK
+.venv/bin/python scripts/check_phase2_sample.py pig            # SAMPLE CHECK PASSED
+.venv/bin/python scripts/check_phase2_sample.py mapreduce      # SAMPLE CHECK PASSED
 ```
 
-## 6. Run the ETL
+- The **smoke test** parses about 2,000 real log lines, including every odd one (binary bytes, a tab in a path, quotes inside requests, the truncated last line), inside Hive and MongoDB using only `contracts/`, and compares every field with Python.
+- **check_phase2.py** runs a real Pig script and a real MapReduce job in the `hadoop` container.
+- **check_phase2_sample.py** runs the Pig or MapReduce engine on the same sample plus made-up edge cases and compares every parsed record and every output row with the contract rules.
+
+## 5. Run the ETL
 
 ```bash
-.venv/bin/python -m etl pipelines
-.venv/bin/python -m etl run --pipeline reference --batch-size 500000
+.venv/bin/python -m etl pipelines                                       # the four engines
+.venv/bin/python -m etl run --pipeline mongodb --batch-size 500000      # batched
+.venv/bin/python -m etl run --pipeline mongodb --no-batch               # whole input as one batch
 ```
 
-`reference` is a **test-only** pure-Python engine. It exists to test the controller, loader and database, and to give every real engine a known-good answer. It is hidden from the report views and must never be shown as a pipeline in the demo. A full run takes about 16 seconds and must report 3,461,613 records, 1 malformed, and final results equal to `reference/reference_results.json`.
+`--pipeline` is one of `mongodb`, `hive`, `mapreduce`, `pig`. Every run must report 3,461,613 records with 1 malformed. `reference` is a **test-only** Python engine that gives the expected answers; it is hidden from the report views and is not one of the four pipelines.
 
-Both real engines are complete:
+## 6. Report, compare, verify
 
 ```bash
-.venv/bin/python -m etl run --pipeline mongodb --batch-size 500000   # about 2 minutes
-.venv/bin/python -m etl run --pipeline hive --batch-size 500000      # about 3 minutes
+.venv/bin/python -m etl report                                   # latest successful run
+.venv/bin/python -m etl report --pipeline pig                    # latest Pig run
+.venv/bin/python -m etl report --run-id RUN_ID --rows all        # every Q1/Q3 row
+.venv/bin/python -m etl report --html runs/reports/pig.html      # full report as a web page
+.venv/bin/python -m etl report --list                            # recent runs
+.venv/bin/python -m etl report --compare                         # runtimes and equivalence of all engines
+.venv/bin/python -m etl.compare --left-run RUN_A --right-run RUN_B   # row by row, any two engines
+.venv/bin/python scripts/verify_reference.py --run-id RUN_ID     # final results vs the answer key
 ```
 
-How they work: [docs/hive_engine.md](docs/hive_engine.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+The report shows the pipeline, run ID, start and finish time, runtime, batch size (or "no batching"), number of batches, average batch size, per-batch counts and times, per-query times, and the Q1–Q3 results.
 
-Show a run's results with its execution metadata (pipeline, run ID, time of execution, runtime, batch IDs, batch size, average batch size, per-query times):
-
-```bash
-.venv/bin/python -m etl report                              # latest successful run
-.venv/bin/python -m etl report --pipeline hive              # latest Hive run
-.venv/bin/python -m etl report --run-id RUN_ID --rows all   # every Q1/Q3 row in the terminal
-.venv/bin/python -m etl report --html runs/reports/latest.html   # full report as a web page
-.venv/bin/python -m etl report --list                       # recent runs
-.venv/bin/python -m etl report --compare                    # runtimes and equivalence across pipelines
-```
-
-Check that two runs agree, row by row, for every batch and the final output (exit code 0 = equivalent):
+## 7. Benchmarks and database tests
 
 ```bash
-.venv/bin/python -m etl.compare --left-run HIVE_RUN_ID --right-run MONGODB_RUN_ID
-.venv/bin/python scripts/verify_reference.py --run-id ANY_RUN_ID     # final results vs reference_results.json
-```
-
-Benchmarks (both engines at 100k, 500k and 1M, 3 rounds, about an hour; results in [docs/BENCHMARKS.md](docs/BENCHMARKS.md)):
-
-```bash
-./scripts/run_benchmarks.sh
-```
-
-Database tests for Q2, Q3 and the checker (needs the containers running):
-
-```bash
+./scripts/run_benchmarks.sh                                       # 3 rounds × {100k, 500k, 1M, none} × 4 engines
+ROUNDS=1 SIZES="500000 none" ./scripts/run_benchmarks.sh          # a quicker subset
 .venv/bin/python -m unittest discover -s tests/integration -p test_person_b.py -v
+.venv/bin/python tests/integration/mongodb_part_a.py              # every MongoDB parsed field vs Python
 ```
 
-## 7. Writing an engine
+For fair timings, run benchmarks on mains power with Low Power Mode off and nothing else busy: a throttled laptop made every engine about 50% slower.
 
-**Phase 2 (Pig and MapReduce):** the shared setup is done. Start with [docs/PHASE2_SETUP.md](docs/PHASE2_SETUP.md): who writes what, the checks to run, and what "done" means.
+## 8. Adding an engine
 
-Read `etl/engine.py` (the interface, about 100 lines) and `etl/engines/reference.py` (a complete working example). Then fill in your file in `etl/engines/`. The controller already does everything else:
+Implement `prepare`, `process_batch`, `finalize` and `cleanup` from [etl/engine.py](etl/engine.py) (`etl/engines/reference.py` is a complete small example) and register the class in `ENGINES`. The controller already cuts the batches, runs the clock, checks the counts, loads PostgreSQL and records success or failure. The engine must parse inside its own system, write `q1.tsv`, `q2.tsv`, `q3.tsv` and `malformed.tsv` in COPY text format, and compute whole-run results over all parsed rows.
 
-| Already done by the controller | Your engine does |
-| --- | --- |
-| Cuts batches of exactly N lines into `runs/<run_id>/batch_000001/input/` (unchanged byte pieces) | Parse every line **inside Hive/MongoDB** |
-| Starts and stops the runtime clock | Write `q1.tsv`, `q2.tsv`, `q3.tsv`, `malformed.tsv` to `spec.output_dir` |
-| Checks `records_read = record_count` and `valid + malformed = read`; fails the run if not | Keep parsed rows so `finalize()` computes exact whole-run Q1-Q3 |
-| Bulk-loads every file into PostgreSQL, with fingerprints, in one transaction per batch | Return a `BatchResult` with the counts and per-step times |
-| Marks the run `succeeded` or `failed` with the reason | Clean up its own tables/collections in `cleanup()` |
+## Troubleshooting
 
-Done means: `python -m etl run --pipeline <yours> --batch-size 500000` succeeds, and its final fingerprints in `etl.query_execution` equal the reference run's (`etl.v_equivalence` shows `all_agree = true` for the same batch size).
-
-## Things that will bite you
-
-- **Port already in use:** another PostgreSQL or MongoDB running on your laptop. Stop it, or pick other ports, for example `PG_PORT=5434 MONGO_PORT=27018 docker compose up -d --wait` (then export the same variables before running `python -m etl`). PostgreSQL already uses 5433 by default because a local PostgreSQL usually holds 5432.
-- **Hive `INSERT OVERWRITE LOCAL DIRECTORY` writes nothing:** Hive's query-results cache swallows the output. Put `SET hive.query.results.cache.enabled=false;` at the top of every Hive script.
-- **Hive output folders contain `.crc` files:** the loader must read only `000000_*`-style files and skip names starting with `.`.
-- **Reading the raw logs in Hive:** use a one-column table with `RegexSerDe` and `input.regex = '([\\s\\S]*)'`, never the default text format. The default splits fields on byte `\x01`, which appears inside a real request line and would silently cut it.
-- **Regex inside a HiveQL string:** every `\` must be doubled. Generate the SQL from `contracts/*.regex` (see `tests/smoke/make_hive_sql.py`) instead of pasting by hand.
-- **Hive container is slow or killed:** Docker Desktop needs more memory (step 1).
+- **Port already in use:** another PostgreSQL or MongoDB on the laptop. Stop it, or pick other ports, for example `PG_PORT=5434 MONGO_PORT=27018 docker compose up -d --wait` (and export the same variables before `python -m etl`).
+- **Hive is slow or killed:** give Docker more memory (step 1). Hive runs with a 2 GB heap.
+- **Hive says "HiveServer2 running as process 7. Stop it first":** fixed in `docker-compose.yml`, which removes the stale pid file at start. With an older checkout, recreate the container: `docker compose -f docker-compose.yml -f compose.lock.yml up -d --wait --force-recreate hive`.
+- **A Pig or MapReduce run fails:** the terminal shows the end of the error; the full log is in `runs/<run>/pig_logs/` or `runs/<run>/mr_logs/`, and the generated Pig scripts are in `runs/<run>/pig_scripts/`.
+- **Everything is suddenly much slower:** check for Low Power Mode or another process using the CPU (`top -o cpu`).

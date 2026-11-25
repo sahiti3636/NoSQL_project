@@ -1,0 +1,7 @@
+Comparing hive vs mongodb; batch size 3,461,613
+Scope: every batch and final output (compared inside PostgreSQL)
+  q1: 590 / 590 rows; 0 differences
+  q2: 40 / 40 rows; 0 differences
+  q3: 2738 / 2738 rows; 0 differences
+  malformed records: 0 differences
+EQUIVALENT

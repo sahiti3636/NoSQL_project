@@ -71,14 +71,17 @@ class Loader:
 
     def mark_succeeded(self, run_id: str, started_at: datetime, finished_at: datetime,
                        runtime_ms: int, total: int, valid: int, malformed: int, num_batches: int,
-                       manifest: list, input_sha256: str) -> None:
+                       manifest: list, input_sha256: str, batch_size: Optional[int] = None) -> None:
+        """batch_size: set only for a run without batching, whose batch size (= every input
+        line) is known only once the input has been read."""
         with self.conn.cursor() as cur:
             cur.execute("""UPDATE etl.etl_run SET status='succeeded', started_at=%s, finished_at=%s,
                                runtime_ms=%s, total_records=%s, valid_records=%s, malformed_records=%s,
-                               num_batches=%s, input_manifest=%s, input_sha256=%s
+                               num_batches=%s, input_manifest=%s, input_sha256=%s,
+                               batch_size=coalesce(%s, batch_size)
                            WHERE run_id=%s""",
                         (started_at, finished_at, runtime_ms, total, valid, malformed, num_batches,
-                         json.dumps(manifest), input_sha256, run_id))
+                         json.dumps(manifest), input_sha256, batch_size, run_id))
         self.conn.commit()
 
     def mark_failed(self, run_id: str, message: str) -> None:

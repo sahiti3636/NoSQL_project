@@ -59,6 +59,14 @@ def _connect():
     return psycopg.connect(config.PG_DSN, row_factory=dict_row)
 
 
+_NO_BATCH_NOTE = "  (no batching: the whole input in one batch)"
+
+
+def _unbatched(run) -> bool:
+    """A run without batching: one batch that holds every input line."""
+    return run["num_batches"] == 1 and run["batch_size"] == run["total_records"]
+
+
 def pick_run_id(conn, run_id: Optional[str], pipeline: Optional[str]) -> str:
     """The given run, or the latest successful real run (optionally of one pipeline)."""
     if run_id:
@@ -171,7 +179,7 @@ def render_text(rep: Report, rows: Optional[int] = 10) -> str:
         ("Finished", cell(r["finished_at"])),
         ("Runtime", seconds(r["runtime_ms"]) + "  (first byte read → final PostgreSQL commit)"
          if r["runtime_ms"] is not None else ""),
-        ("Batch size", cell(r["batch_size"]) + " lines"),
+        ("Batch size", cell(r["batch_size"]) + " lines" + (_NO_BATCH_NOTE if _unbatched(r) else "")),
         ("Batches", cell(r["num_batches"])),
         ("Average batch size", f"{r['avg_batch_size']:,.2f}" if r["avg_batch_size"] is not None else ""),
         ("Records", f"{cell(r['total_records'])}  ({cell(r['valid_records'])} valid, "
@@ -241,7 +249,8 @@ def render_html(rep: Report) -> str:
 
     meta = [("Pipeline", r["pipeline"]), ("Run ID", r["run_id"]), ("Status", r["status"]),
             ("Started", r["started_at"]), ("Finished", r["finished_at"]),
-            ("Runtime", seconds(r["runtime_ms"])), ("Batch size", r["batch_size"]),
+            ("Runtime", seconds(r["runtime_ms"])),
+            ("Batch size", f"{r['batch_size']:,} lines" + (_NO_BATCH_NOTE if _unbatched(r) else "")),
             ("Batches", r["num_batches"]),
             ("Average batch size", f"{r['avg_batch_size']:,.2f}" if r["avg_batch_size"] is not None else ""),
             ("Records", r["total_records"]), ("Valid", r["valid_records"]),

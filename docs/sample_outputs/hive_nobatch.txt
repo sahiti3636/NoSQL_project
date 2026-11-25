@@ -1,0 +1,79 @@
+NASA log ETL report  ·  run c4c8a04a-b25a-4653-958a-0449b321ffdc
+
+  Pipeline            hive
+  Status              succeeded
+  Started             2026-11-25 20:03:40 IST
+  Finished            2026-11-25 20:06:09 IST
+  Runtime             149.27 s  (first byte read → final PostgreSQL commit)
+  Batch size          3,461,613 lines  (no batching: the whole input in one batch)
+  Batches             1
+  Average batch size  3,461,613.00
+  Records             3,461,613  (3,461,612 valid, 1 malformed)
+
+Queries (whole run)
+query  name                     final query time
+-----  -----------------------  ----------------
+Q1     Daily Traffic Summary    2.13 s
+Q2     Top Requested Resources  11.03 s
+Q3     Hourly Error Analysis    2.35 s
+
+Batches
+batch_id    records      valid  malformed  batch time  q1      q2       q3
+--------  ---------  ---------  ---------  ----------  ------  -------  ------
+       1  3,461,613  3,461,612          1  130.36 s    2.08 s  10.95 s  2.40 s
+
+Q1  Daily Traffic Summary  (295 rows)
+log_date    status_code  request_count    total_bytes
+----------  -----------  -------------  -------------
+1995-07-01          200         58,033  1,617,409,574
+1995-07-01          302          2,568        218,465
+1995-07-01          304          3,797              0
+1995-07-01          404            316              0
+1995-07-02          200         54,492  1,531,584,293
+1995-07-02          302          2,370        195,795
+1995-07-02          304          3,107              0
+1995-07-02          403              5              0
+1995-07-02          404            291              0
+1995-07-03          200         81,351  2,085,066,566
+... 285 more rows (use --rows all, or --html for the full report)
+
+Q2  Top Requested Resources  (20 rows)
+rank  resource_path                                    request_count  total_bytes  distinct_host_count
+----  -----------------------------------------------  -------------  -----------  -------------------
+   1  /images/NASA-logosmall.gif                             208,717  131,721,024               81,507
+   2  /images/KSC-logosmall.gif                              164,969  169,355,844               85,155
+   3  /images/MOSAIC-logosmall.gif                           127,911   40,592,838               54,902
+   4  /images/USA-logosmall.gif                              127,077   25,992,252               54,496
+   5  /images/WORLD-logosmall.gif                            125,928   73,792,707               54,052
+   6  /images/ksclogo-medium.gif                             121,575  629,720,966               49,489
+   7  /ksc.html                                               83,878  563,459,795               29,169
+   8  /images/launch-logo.gif                                 76,005  114,683,637               42,555
+   9  /history/apollo/images/apollo-logo1.gif                 68,894   71,779,389               38,403
+  10  /shuttle/countdown/                                     64,722  255,084,701               36,888
+  11  /                                                       63,133  399,267,280               31,756
+  12  /images/ksclogosmall.gif                                61,395  202,018,760               38,842
+  13  /shuttle/missions/missions.html                         47,301  379,380,837               27,550
+  14  /images/launchmedium.gif                                40,686  445,720,212               24,841
+  15  /htbin/cdt_main.pl                                      39,868  143,954,736               12,656
+  16  /shuttle/missions/sts-69/mission-sts-69.html            31,568  317,253,063               18,169
+  17  /shuttle/countdown/liftoff.html                         29,858  112,045,194               14,559
+  18  /icons/menu.xbm                                         29,189   13,908,584               17,818
+  19  /shuttle/missions/sts-69/sts-69-patch-small.gif         29,115  212,141,819               18,066
+  20  /icons/blank.xbm                                        28,851   13,213,640               17,845
+
+Q3  Hourly Error Analysis  (1,369 rows)
+log_date    log_hour  error_request_count  total_request_count  error_rate  distinct_error_hosts
+----------  --------  -------------------  -------------------  ----------  --------------------
+1995-07-01         0                   24                3,565    0.006732                    12
+1995-07-01         1                   10                3,004    0.003329                     7
+1995-07-01         2                   12                2,268    0.005291                     9
+1995-07-01         3                   16                1,734    0.009227                     5
+1995-07-01         4                   10                1,482    0.006748                     8
+1995-07-01         5                    9                1,343    0.006701                     5
+1995-07-01         6                    4                1,528    0.002618                     3
+1995-07-01         7                    2                1,557    0.001285                     1
+1995-07-01         8                    6                1,927    0.003114                     4
+1995-07-01         9                    3                2,096    0.001431                     2
+... 1,359 more rows (use --rows all, or --html for the full report)
+
+full report written to docs/sample_outputs/hive_nobatch.html

@@ -41,5 +41,22 @@ class Phase2SetupTest(unittest.TestCase):
             shutil.rmtree(d, ignore_errors=True)
 
 
+    def test_pig_copy_escape(self):
+        """Pig's REPLACE is Java replaceAll inside a Pig literal; simulate both layers and check
+        the result is PostgreSQL COPY text that reads back to the original value."""
+        from etl import outputs
+        from etl.engines.pig import _copy_escape
+        expr = _copy_escape("x")
+        steps = re.findall(r"REPLACE\(", expr)
+        self.assertEqual(len(steps), 4)
+        pairs = re.findall(r", '((?:[^'\\]|\\.)*)', '((?:[^'\\]|\\.)*)'\)", expr)
+        value = "a\\b\tc\nd\re/é"
+        out = value
+        for regex, replacement in pairs:
+            out = re.sub(unquote(f"'{regex}'"), unquote(f"'{replacement}'"), out)
+        self.assertEqual(out, "a\\\\b\\tc\\nd\\re/é")
+        self.assertEqual(outputs.parse_line(out), [value])
+
+
 if __name__ == "__main__":
     unittest.main()

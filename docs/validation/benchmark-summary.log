@@ -1,0 +1,17 @@
+final four-engine benchmark, 25 Nov 2026 (one run per configuration; Pig re-run after its driver change)
+round 1  mongodb  100000  97.23 s  7068b74d-f8a8-4759-abba-a505779a0a78
+round 1  hive  100000  425.14 s  ce9d9ce5-a932-495d-8c41-5c886ac1acff
+round 1  mapreduce  100000  111.67 s  9640ffb3-76ac-49c3-a75e-67efbe6a4d48
+round 1  hive  500000  207.15 s  97571b10-fc4a-49f1-ac5b-927cd70180e1
+round 1  mapreduce  500000  65.58 s  0e1e6acd-ead3-4466-9003-573a44a13a08
+round 1  mongodb  1000000  99.80 s  c0cd3a04-90cb-4ac3-a5b8-e3bde1553960
+round 1  hive  1000000  171.38 s  506f88da-2414-4ad1-95a8-c51b86eac87f
+round 1  mapreduce  1000000  56.57 s  982aad14-dbde-4ef8-89e5-4907f2b67d59
+round 1  mongodb  none  97.08 s  3c36925b-4050-42af-bac8-fd9bbe602def
+round 1  hive  none  149.27 s  c4c8a04a-b25a-4653-958a-0449b321ffdc
+round 1  mapreduce  none  51.23 s  54ca64c2-97f9-4887-9919-9982041e76e4
+round 1  mongodb  500000  94.78 s  08e034fd-4d7d-4fed-8cd4-fa45f0f308f5  (re-run: the first run overlapped with verification queries; ea7989be removed)
+round 1  pig  100000  261.42 s  4501fc44-b11e-4f23-9edd-1e1108e25375
+round 1  pig  1000000  128.88 s  df5db37a-40a5-4a37-872b-336f45d8eadc
+round 1  pig  none  114.34 s  53580065-e34a-443e-b8a5-7b7316e4aecb
+round 1  pig  500000  137.11 s  18ab2f24-0256-43a0-8604-7bf313b03151

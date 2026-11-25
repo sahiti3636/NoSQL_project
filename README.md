@@ -1,15 +1,10 @@
-# NASA Log ETL: one workload, many engines
+# NASA Log ETL: one workload, four engines
 
-A multi-pipeline ETL and reporting tool for the NASA Kennedy Space Center web server logs (July and August 1995, 3,461,613 lines). The user picks one engine and a batch size. The tool parses every log line **inside that engine**, runs three fixed queries, loads the results into PostgreSQL, and reports them together with the run's runtime and batch statistics.
+A multi-pipeline ETL and reporting tool for the NASA Kennedy Space Center web server logs (July and August 1995, 3,461,613 lines). The user picks one engine (**Pig**, **MapReduce**, **MongoDB** or **Hive**) and a batch size, or no batching. The tool parses every log line **inside that engine**, runs three fixed queries per batch and for the whole run, loads the results into PostgreSQL, and reports them with the run's runtime and batch statistics.
 
-DAS 839 NoSQL Systems, end-semester project.
+DAS 839 NoSQL Systems, end-semester project. **Final report:** [report/final_report.pdf](report/final_report.pdf).
 
-| Phase | Engines | Status |
-| --- | --- | --- |
-| 1 | **MongoDB**, **Hive** | Done: both engines give identical results on every batch and the whole run |
-| 2 | Pig, MapReduce | Shared setup ready (container, engine skeletons, checks); engines in progress. See [docs/PHASE2_SETUP.md](docs/PHASE2_SETUP.md) |
-
-![Phase 1 architecture](docs/architecture.png)
+![Final architecture](docs/architecture.png)
 
 ## The three queries
 
@@ -21,32 +16,35 @@ DAS 839 NoSQL Systems, end-semester project.
 
 ## How it works
 
-- **The controller** (`etl/`) cuts the input into batches of exactly N lines. The batches are unchanged byte slices of the logs, so this is not preprocessing. The controller also times the run, from the first byte read to the final database commit, and checks that every batch's counts add up.
-- **The engines** (`etl/engines/`) do all parsing and aggregation. Python never reads a log line:
-  - **MongoDB:** `$regexFind` parsing and `$group` queries
+- **The controller** (`etl/`) cuts the input into batches of exactly N lines (or one batch with `--no-batch`). Batches are unchanged byte slices of the logs, so this is not preprocessing. It times the run from the first byte read to the final database commit and checks that every batch's counts add up.
+- **The engines** (`etl/engines/`) do all parsing and aggregation; Python never reads a field:
+  - **MongoDB:** `$regexFind` parsing, `$group` queries
   - **Hive:** `RegexSerDe` ingestion, HiveQL parsing, ORC tables
+  - **MapReduce:** Java jobs: a map-only parse job, then one job per query with combiners
+  - **Pig:** `TextLoader` ingestion, `REGEX_EXTRACT_ALL` parsing in Pig Latin, `BinStorage` for the kept rows
 - **Contracts** (`contracts/`) are the shared rules every engine loads: the parsing regexes, the month map and the output columns. This is what keeps the engines equivalent.
-- **PostgreSQL** (`sql/schema.sql`) stores each batch's results and the whole-run results, with run, batch and query metadata. Constraints reject inconsistent data.
-- **The report** (`python -m etl report`) shows a run's results with its execution metadata.
-- **The equivalence checker** (`python -m etl.compare`) compares two runs row by row.
+- **PostgreSQL** (`sql/schema.sql`) stores each batch's results and the whole-run results with run, batch and query metadata; constraints reject inconsistent data.
+- **The report** (`python -m etl report`) shows a run's results with its execution metadata, and compares the engines.
+- **The equivalence checker** (`python -m etl.compare`) compares two runs of any two engines row by row.
 
 ## Results
 
-All runs: 3,461,613 records, 1 malformed line (the truncated last line of the July file).
+Every run: 3,461,613 records, 1 malformed line (the truncated last line of the July file).
 
-| Batch size | Batches | MongoDB | Hive |
-| ---: | ---: | ---: | ---: |
-| 100,000 | 35 | 104.7 s | 437.0 s |
-| 500,000 | 7 | 106.3 s | 170.5 s |
-| 1,000,000 | 4 | 105.5 s | 142.7 s |
+| Batch size | Batches | MongoDB | Hive | MapReduce | Pig |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 100,000 | 35 | **97.2 s** | 425.1 s | 111.7 s | 261.4 s |
+| 500,000 | 7 | 94.8 s | 207.2 s | **65.6 s** | 137.1 s |
+| 1,000,000 | 4 | 99.8 s | 171.4 s | **56.6 s** | 128.9 s |
+| no batching | 1 | 97.1 s | 149.3 s | **51.2 s** | 114.3 s |
 
-Each figure is the median of 3 runs on an Apple M3 Pro with 8 GB for Docker. Both engines spend about the same time per line (~26.5 µs), but Hive pays a fixed cost of about 9 s per batch, so it gets much faster with bigger batches. Details: [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
+One run each on an Apple M3 Pro with 8 GB for Docker. MongoDB costs the same at any batch size; Hive, Pig and MapReduce pay a fixed cost for every batch (about 8 s, 4.3 s and 1.8 s), so they get faster with bigger batches, and MapReduce is the fastest engine once batches are large. Details: [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
 
-**Equivalence:** Hive and MongoDB agree on all 614 Q1, 160 Q2 and 2,744 Q3 rows across every batch and the whole run, and all 18 benchmark runs give one fingerprint per query. Details: [docs/VALIDATION.md](docs/VALIDATION.md).
+**Equivalence:** at every batch size, including no batching, all four engines give exactly the same Q1, Q2 and Q3 rows for every batch and the whole run (`python -m etl.compare` says EQUIVALENT; `python -m etl report --compare` shows one answer per query), and every run matches the answer key. Details: [docs/VALIDATION.md](docs/VALIDATION.md).
 
 ## Quick start
 
-You need Docker Desktop (6 GB+ memory) and Python 3. Full instructions, including Windows, are in [SETUP.md](SETUP.md).
+You need Docker Desktop (6 GB+ memory) and Python 3. Full instructions, including Windows: [SETUP.md](SETUP.md).
 
 1. Get the code and the two log files, and unpack them. Never edit the logs.
    ```bash
@@ -56,9 +54,9 @@ You need Docker Desktop (6 GB+ memory) and Python 3. Full instructions, includin
    curl -o data/NASA_access_log_Aug95.gz https://ita.ee.lbl.gov/traces/NASA_access_log_Aug95.gz
    gunzip -k data/*.gz
    ```
-2. Start PostgreSQL, MongoDB and Hive, with image versions pinned:
+2. Start PostgreSQL, MongoDB, Hive and the Pig/MapReduce `hadoop` container, with versions pinned:
    ```bash
-   docker compose -f docker-compose.yml -f compose.lock.yml up -d --wait --wait-timeout 360
+   docker compose -f docker-compose.yml -f compose.lock.yml up -d --build --wait --wait-timeout 600
    ```
 3. Set up Python and run the checks:
    ```bash
@@ -66,13 +64,14 @@ You need Docker Desktop (6 GB+ memory) and Python 3. Full instructions, includin
    .venv/bin/python -m pip install -r requirements.txt
    .venv/bin/python -m unittest discover -s tests
    ./tests/smoke/run.sh
+   .venv/bin/python scripts/check_phase2.py
    ```
-   The unit tests must pass, and the smoke test must print `SMOKE TEST PASSED`.
-4. Run a pipeline and see the report:
+4. Run a pipeline, with and without batching, and see the report:
    ```bash
-   .venv/bin/python -m etl run --pipeline mongodb --batch-size 500000
-   .venv/bin/python -m etl run --pipeline hive --batch-size 500000
-   .venv/bin/python -m etl report --pipeline hive
+   .venv/bin/python -m etl run --pipeline pig --batch-size 500000
+   .venv/bin/python -m etl run --pipeline pig --no-batch
+   .venv/bin/python -m etl report --pipeline pig
+   .venv/bin/python -m etl report --compare
    ```
 
 ## Commands
@@ -80,40 +79,48 @@ You need Docker Desktop (6 GB+ memory) and Python 3. Full instructions, includin
 | Command | What it does |
 | --- | --- |
 | `python -m etl pipelines` | List the engines |
-| `python -m etl run --pipeline <mongodb\|hive> --batch-size <N>` | Run the full ETL with one engine |
-| `python -m etl report [--run-id ID \| --pipeline P]` | Show a run's results and metadata (latest successful run by default) |
-| `python -m etl report --html FILE` | Write the full report, every row, as a web page |
-| `python -m etl report --list` | List recent runs |
-| `python -m etl report --compare` | Show runtimes and equivalence across engines |
+| `python -m etl run --pipeline <mongodb\|hive\|mapreduce\|pig> --batch-size <N>` | Run the full ETL with one engine, N lines per batch |
+| `python -m etl run --pipeline <...> --no-batch` | Same, with the whole input as one batch |
+| `python -m etl report [--run-id ID \| --pipeline P]` | A run's results and metadata (latest successful run by default) |
+| `python -m etl report --html FILE` | The full report, every row, as a web page |
+| `python -m etl report --list` | Recent runs |
+| `python -m etl report --compare` | Runtimes and equivalence across engines and batch sizes |
 | `python -m etl.compare --left-run A --right-run B` | Row-by-row check that two runs agree |
-| `python scripts/verify_reference.py --run-id ID` | Check a run against the reference answers |
-| `./scripts/run_benchmarks.sh` | Benchmark both engines at 100k, 500k and 1M (about 1 hour) |
+| `python scripts/verify_reference.py --run-id ID` | Check a run against the answer key |
+| `python scripts/check_phase2_sample.py <pig\|mapreduce>` | Every parsed field and output row of Pig or MapReduce on the edge-case sample |
+| `./scripts/run_benchmarks.sh` | Benchmark all four engines at 100k, 500k, 1M and no batching |
 
 ## Repository layout
 
 ```
-contracts/      shared parsing regexes, month map, output columns, batch schemas
-etl/            controller, batcher, loader, report, equivalence checker
-etl/engines/    mongodb.py, hive.py, reference.py (test-only Python engine)
-sql/            PostgreSQL schema and report views; row-by-row comparison query
+contracts/      shared parsing regexes, month map, output columns, controller-engine messages
+etl/            controller (runner, batcher, loader, CLI), report, equivalence checker
+etl/engines/    mongodb.py, hive.py, mapreduce.py, pig.py, hadoop_common.py,
+                reference.py (test-only Python answer key)
+mapreduce/src/  MapReduce Java jobs (parse, Q1, Q2, Q3, counts, RunJobs)
+pig/src/        Pig Java UDF (byte-order key for Q2 ties)
+docker/hadoop/  container for Pig and MapReduce: Hadoop 3.3.6, Pig 0.18.0, JDK 8
+sql/            PostgreSQL schema, report views, row-by-row comparison query
 reference/      Python reference implementation and expected results
 tests/          unit tests, smoke test (2,038 tricky lines), database tests
-scripts/        benchmark runner, reference check, Windows smoke-test launcher
-docs/           architecture, Hive engine, benchmarks, validation evidence
-report/         Phase 1 report (IEEE format, LaTeX + PDF)
+scripts/        benchmarks, setup checks, reference check, Windows smoke-test launcher
+docs/           architecture, one page per engine, benchmarks, validation evidence, sample outputs
+report/         final report and Phase 1 report (IEEE format, LaTeX + PDF)
+project_handwritten_discussion_architecture/   Phase 1 handwritten design notes
 ```
 
 ## Documentation
 
-- [Phase 1 report (PDF)](report/phase1_report.pdf)
-- [Architecture](docs/ARCHITECTURE.md) · [Hive engine](docs/hive_engine.md) · [Benchmarks](docs/BENCHMARKS.md) · [Validation](docs/VALIDATION.md)
-- [Setup guide](SETUP.md) · [Windows guide](docs/PERSON_B.md) · [Project summary](PROJECT_SUMMARY.md)
+- [Final report (PDF)](report/final_report.pdf) · [Phase 1 report (PDF)](report/phase1_report.pdf)
+- [Architecture](docs/ARCHITECTURE.md) · [MongoDB](docs/mongodb_engine.md) · [Hive](docs/hive_engine.md) · [MapReduce](docs/mapreduce_engine.md) · [Pig](docs/pig_engine.md)
+- [Benchmarks](docs/BENCHMARKS.md) · [Validation](docs/VALIDATION.md) · [Sample outputs](docs/sample_outputs/)
+- [Setup](SETUP.md) · [Windows](docs/WINDOWS.md) · [Project summary](PROJECT_SUMMARY.md)
 
 ## Team
 
-| Member | Phase 1 work |
-| --- | --- |
-| Sahiti (BT2024163) | MongoDB ingestion, parsing, malformed records, Q1; controller, batcher, loader |
-| Tushaar (BT2024022) | MongoDB Q2 and Q3; architecture, equivalence checker, database tests |
-| Aman (BT2024123) | Hive ingestion, parsing, malformed records, Q1; PostgreSQL schema |
-| Prajwal (BT2024245) | Hive Q2, Q3 and whole-run results; reporting module |
+| Member | Phase 1 | Phase 2 |
+| --- | --- | --- |
+| Sahiti (BT2024163) | MongoDB ingestion, parsing, malformed records, Q1; controller, batcher, loader | MapReduce ingestion, parsing, malformed records, Q1; benchmark runs |
+| Tushaar (BT2024022) | MongoDB Q2 and Q3; equivalence checker, database tests | MapReduce Q2, Q3, whole-run results |
+| Aman (BT2024123) | Hive ingestion, parsing, malformed records, Q1 | Pig ingestion, parsing, malformed records, Q1 |
+| Prajwal (BT2024245) | Hive Q2, Q3 and whole-run results; reporting module | Pig Q2, Q3, whole-run results |

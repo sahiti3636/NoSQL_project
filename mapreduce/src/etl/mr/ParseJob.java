@@ -37,6 +37,7 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
  * Parsing follows the Hive engine exactly (Matcher.find(), as Hive's RLIKE and regexp_extract do):
  *   malformed  = envelope does not match, or the month is not in months.tsv
  *   log_date   = year-month-day by slicing the timestamp (no date functions, no timezone shift)
+ *   log_timestamp = log_date + " HH:MM:SS +hhmm", also sliced (the time as logged, zone kept)
  *   request    = request regex (method, path, protocol) or, when it does not match, the fallback
  *                regex gives the path and method/protocol are ''
  *   bytes '-'  = 0
@@ -77,6 +78,7 @@ public class ParseJob {
 
             rec.host = m.group(1);
             rec.logDate = m.group(6) + "-" + month + "-" + m.group(4);
+            rec.logTimestamp = rec.logDate + " " + m.group(7) + ":" + m.group(8) + ":" + m.group(9) + " " + m.group(10);
             rec.logHour = Integer.parseInt(m.group(7));
             String request = m.group(11);
             Matcher r = c.request.matcher(request);
@@ -105,14 +107,19 @@ public class ParseJob {
     }
 
     public static void main(String[] args) throws Exception {
+        System.exit(run(args));
+    }
+
+    /** The job itself; returns 0 on success. RunJobs calls this to run several jobs in one JVM. */
+    public static int run(String[] args) throws Exception {
         if (args.length != 6) {
             System.err.println("usage: ParseJob <input> <workDir> <parsedDir> <malformedDir> <malformedTsv> <countsFile>");
-            System.exit(2);
+            return 2;
         }
         Path input = new Path(args[0]), work = new Path(args[1]);
         Path parsedDir = new Path(args[2]), malformedDir = new Path(args[3]), malformedTsv = new Path(args[4]);
 
-        Configuration conf = new Configuration();
+        Configuration conf = Jobs.conf();
         conf.set("textinputformat.record.delimiter", "\n");   // contract: a lone \r is not a line end
         Job job = Job.getInstance(conf, "etl parse " + input.getName());
         job.setJarByClass(ParseJob.class);
@@ -127,7 +134,7 @@ public class ParseJob {
                 Text.class, NullWritable.class);
         if (!job.waitForCompletion(false)) {
             System.err.println("ParseJob failed: " + job.getStatus().getFailureInfo());
-            System.exit(1);
+            return 1;
         }
 
         // Move the outputs to where the query jobs and finalize() expect them.
@@ -151,5 +158,6 @@ public class ParseJob {
         long valid = n.findCounter(Count.VALID).getValue();
         long malformed = n.findCounter(Count.MALFORMED).getValue();
         Files.write(Paths.get(args[5]), (CopyText.row(read, valid, malformed) + "\n").getBytes(StandardCharsets.UTF_8));
+        return 0;
     }
 }

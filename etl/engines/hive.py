@@ -72,6 +72,7 @@ CREATE DATABASE IF NOT EXISTS {self.db};
 USE {self.db};
 CREATE TABLE IF NOT EXISTS parsed_records (
     host STRING,
+    log_timestamp STRING,
     log_date STRING,
     log_hour INT,
     http_method STRING,
@@ -110,6 +111,9 @@ FROM (
 INSERT INTO TABLE parsed_records PARTITION (batch_id = {b})
 SELECT
   regexp_extract(line, {env}, 1),
+  concat(regexp_extract(line, {env}, 6), '-', {self.month}, '-', regexp_extract(line, {env}, 4), ' ',
+         regexp_extract(line, {env}, 7), ':', regexp_extract(line, {env}, 8), ':',
+         regexp_extract(line, {env}, 9), ' ', regexp_extract(line, {env}, 10)),
   concat(regexp_extract(line, {env}, 6), '-', {self.month}, '-', regexp_extract(line, {env}, 4)),
   cast(regexp_extract(line, {env}, 7) AS INT),
   if(req RLIKE {self.req}, regexp_extract(req, {self.req}, 1), ''),

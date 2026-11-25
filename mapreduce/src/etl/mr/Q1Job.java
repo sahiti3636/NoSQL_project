@@ -2,7 +2,6 @@ package etl.mr;
 
 import java.io.IOException;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -72,11 +71,16 @@ public class Q1Job {
     }
 
     public static void main(String[] args) throws Exception {
+        System.exit(run(args));
+    }
+
+    /** The job itself; returns 0 on success. RunJobs calls this to run several jobs in one JVM. */
+    public static int run(String[] args) throws Exception {
         if (args.length != 2) {
             System.err.println("usage: Q1Job <parsed input> <output folder>");
-            System.exit(2);
+            return 2;
         }
-        Job job = Job.getInstance(new Configuration(), "etl q1");
+        Job job = Job.getInstance(Jobs.conf(), "etl q1");
         job.setJarByClass(Q1Job.class);
         job.setInputFormatClass(SequenceFileInputFormat.class);
         job.setMapperClass(Q1Mapper.class);
@@ -91,7 +95,8 @@ public class Q1Job {
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
         if (!job.waitForCompletion(false)) {
             System.err.println("Q1Job failed: " + job.getStatus().getFailureInfo());
-            System.exit(1);
+            return 1;
         }
+        return 0;
     }
 }

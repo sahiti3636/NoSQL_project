@@ -33,6 +33,13 @@ class BatcherTest(unittest.TestCase):
         self.assertEqual([b.record_count for b in batches], [3, 3, 2])   # only the last is short
         self.assertEqual([(b.first_line_no, b.last_line_no) for b in batches], [(1, 3), (4, 6), (7, 8)])
 
+    def test_no_batching_is_one_batch_of_every_line(self):
+        from etl.runner import NO_BATCHING
+        bt, batches = self.run_batcher(NO_BATCHING)
+        self.assertEqual(len(batches), 1)
+        self.assertEqual((batches[0].batch_id, batches[0].first_line_no, batches[0].last_line_no), (1, 1, 8))
+        self.assertEqual([p.source_file for p in batches[0].pieces], ["A", "B"])   # files still kept apart
+
     def test_batch_crossing_files_has_two_unchanged_pieces(self):
         _, batches = self.run_batcher(3)
         crossing = batches[1]                        # lines 4..6 = a4, a5-truncated, b1

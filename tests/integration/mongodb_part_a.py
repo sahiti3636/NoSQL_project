@@ -17,7 +17,7 @@ from etl.engines.mongodb import MongoEngine
 from etl.outputs import read_rows
 
 eng = MongoEngine()
-eng._q2_pipeline = lambda: [{"$match": {"_id": None}}]        # Person B's part, stubbed for this test only
+eng._q2_rows = lambda match: []                             # Person B's part, stubbed for this test only
 eng._q3_pipeline = lambda: [{"$match": {"_id": None}}]
 run_id = str(uuid.uuid4()); run_dir = config.RUNS_DIR / "_tests" / run_id
 ctx = RunContext(run_id, "mongodb", 500_000, run_dir)
@@ -56,10 +56,10 @@ try:
             for raw in lines:
                 s_ = raw.rstrip(b"\r").decode("utf-8", "replace"); m = ENV.match(s_)
                 if not m or m.group(5) not in MON: yield (False, s_); continue
-                h, _, _, dd, mo, yy, hh, _, _, _, rq, sc, by = m.groups(); r = REQ.match(rq)
+                h, _, _, dd, mo, yy, hh, mi, ss, tz, rq, sc, by = m.groups(); r = REQ.match(rq)
                 me, pa, pr = (r.group(1), r.group(2), r.group(3) or "") if r else ("", FB.match(rq).group(1), "")
-                yield (True, h, f"{yy}-{MON[mo]}-{dd}", int(hh), me, pa, pr, int(sc), 0 if by == "-" else int(by))
-    keys = ["host", "log_date", "log_hour", "http_method", "resource_path", "protocol_version", "status_code", "bytes_transferred"]
+                yield (True, h, f"{yy}-{MON[mo]}-{dd} {hh}:{mi}:{ss} {tz}", f"{yy}-{MON[mo]}-{dd}", int(hh), me, pa, pr, int(sc), 0 if by == "-" else int(by))
+    keys = ["host", "log_timestamp", "log_date", "log_hour", "http_method", "resource_path", "protocol_version", "status_code", "bytes_transferred"]
     cur = eng.parsed.find({}, {"_id": 0}).sort("n", 1).batch_size(50_000)
     mism = n = 0
     for exp, doc in zip(expected(), cur):

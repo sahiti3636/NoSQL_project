@@ -36,6 +36,9 @@ class MongoQueriesTest(unittest.TestCase):
     def aggregate(self, query, documents):
         if documents:
             self.collection.insert_many(documents)
+        if query == 'q2':                       # Q2 is two aggregations (top 20, then hosts)
+            self.engine.parsed = self.collection
+            return list(self.engine._q2_rows({'ok': True}))
         return list(self.collection.aggregate([{'$match': {'ok': True}}] +
                     getattr(self.engine, '_' + query + '_pipeline')(),
                     allowDiskUse=True, collation={'locale': 'simple'}))

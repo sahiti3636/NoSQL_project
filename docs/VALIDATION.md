@@ -1,90 +1,41 @@
-# Person B validation results
+# Validation
 
-Validated on 17 November 2026 (Asia/Calcutta). Source baseline: `7619b07`.
+How we know the four engines are correct and give the same answers. Final checks: 25 Nov 2026, on the code in this repository. Logs of every check are in [validation/](validation/).
 
-## Completed checks
+## Checks
 
-- PostgreSQL, MongoDB, and Hive containers healthy, including after starting with `compose.lock.yml`.
-- Original smoke test: **SMOKE TEST PASSED**; 2,038 sample records, 1 malformed;
-  zero parsing mismatches for both MongoDB and Hive.
-- Existing batcher suite: **6 tests passed**.
-- New real-database Person B suite: **16 tests passed** (log included).
-- Python compilation and Git whitespace check passed.
-- Full MongoDB ETL: **3,461,613 records, 3,461,612 valid, 1 malformed**.
-- Seven batches at size 500,000; last batch 461,613; average 494,516.14.
-- MongoDB final Q1-Q3: actual PostgreSQL rows and recorded fingerprints match the committed oracle.
-- SQL comparison against the test-only reference: every batch and final result equivalent.
+| Check | What it proves | Result | Log |
+| --- | --- | --- | --- |
+| Unit tests (`python -m unittest discover -s tests`) | batcher (incl. no-batch mode), report formatting, engine registry, regex quoting, Pig COPY escaping | **21 passed** | [unit-tests.log](validation/unit-tests.log) |
+| Smoke test (`tests/smoke/run.sh`) | Hive and MongoDB parse 2,038 tricky real lines exactly like Python, field by field | **SMOKE TEST PASSED**, 0 mismatches | [smoke-test.log](validation/smoke-test.log) |
+| `scripts/check_phase2.py` | Pig and MapReduce run real jobs in the `hadoop` container with the contract regex | **PHASE 2 SETUP OK** | [phase2-setup-check.log](validation/phase2-setup-check.log) |
+| `scripts/check_phase2_sample.py pig` / `mapreduce` | on the 2,038-line sample plus made-up edge cases (tab and backslash in a top-20 path, malformed line with tab and backslash, trailing `\r`, unknown month, 21 paths tied for the top 20 where byte order decides): every parsed record (all nine fields), every count, every Q1–Q3 and malformed row, batch and whole run | **SAMPLE CHECK PASSED** (both) | [pig](validation/sample-check-pig.log), [mapreduce](validation/sample-check-mapreduce.log) |
+| Hive parsed table on the sample | Hive's `parsed_records`, all nine fields incl. `log_timestamp`, vs Python | 2,037 rows, **0 mismatches** | (run during development) |
+| `tests/integration/mongodb_part_a.py` | all 3,461,613 parsed MongoDB documents vs Python, field by field (incl. `log_timestamp`); final Q1 vs answer key | **PART A PASSED**, 0 mismatches | (about 15 minutes; run on 25 Nov) |
+| Database tests (`tests/integration/test_person_b.py`) | Q2/Q3 edge cases in MongoDB (binary tie-break, 64-bit bytes, zero-error hours, empty input) and the equivalence checker's refusals | **16 passed** | [database-tests.log](validation/database-tests.log) |
+| Full runs (below) | every engine at four batch sizes vs the answer key and vs each other | **all passed, all equivalent** | [final-runs.json](validation/final-runs.json), [benchmark-summary.log](validation/benchmark-summary.log) |
 
-## Final results versus committed reference JSON
+## Full runs: four engines × four batch sizes
 
-| Query | Final rows | Differences | Fingerprint |
-|---|---:|---:|---|
-| Q1 | 295 | 0 | Matches |
-| Q2 | 20 | 0 | Matches |
-| Q3 | 1,369 | 0 | Matches |
+16 runs on 25 Nov 2026, the same input (one SHA-256 for both files). Each run read **3,461,613 records: 3,461,612 valid, 1 malformed** (`alyssa.p`, the truncated last line of July).
 
-## SQL comparison: reference versus MongoDB
+- `scripts/verify_reference.py --run-id …`: final Q1 (295 rows), Q2 (20) and Q3 (1,369) equal `reference/reference_results.json`, with matching fingerprints, **for all 16 runs**.
+- `python -m etl.compare --left-run <engine> --right-run <mongodb>` at the same batch size: **EQUIVALENT for all 12 pairs**, on every batch and the whole run (for example at 500k: 614 Q1, 160 Q2 and 2,744 Q3 rows, 0 differences, malformed lines identical).
+- `python -m etl report --compare` (`etl.v_equivalence`): **one distinct answer per query** at 100k, 500k, 1M and 3,461,613 (no batching) across hive, mapreduce, mongodb and pig.
 
-| Query | Reference rows, all scopes | MongoDB rows, all scopes | Differences |
-|---|---:|---:|---:|
-| Q1 | 614 | 614 | 0 |
-| Q2 | 160 | 160 | 0 |
-| Q3 | 2,744 | 2,744 | 0 |
+| Batch size | MongoDB | Hive | MapReduce | Pig |
+| --- | --- | --- | --- | --- |
+| 100,000 | `7068b74d` ✓ | `ce9d9ce5` ✓ | `9640ffb3` ✓ | `4501fc44` ✓ |
+| 500,000 | `08e034fd` ✓ | `97571b10` ✓ | `0e1e6acd` ✓ | `18ab2f24` ✓ |
+| 1,000,000 | `c0cd3a04` ✓ | `506f88da` ✓ | `982aad14` ✓ | `df5db37a` ✓ |
+| no batching | `3c36925b` ✓ | `c4c8a04a` ✓ | `54ca64c2` ✓ | `53580065` ✓ |
 
-Malformed-record differences: **0**.
-Q3 absolute error-rate comparison tolerance: **1e-12**.
+✓ = answer key passed and (for the three non-MongoDB engines) EQUIVALENT to MongoDB at that batch size. Full run IDs and runtimes: [BENCHMARKS.md](BENCHMARKS.md).
 
-## Runs retained in this laptop's PostgreSQL database
+## What "equivalent" means
 
-- MongoDB: `c817ae40-b8c4-4cb7-9f50-d67b612a7896`; measured runtime **588.36 s**.
-- Test-only reference: `fe304457-dc62-4489-ad87-3deed8786f21`; measured runtime **41.14 s**.
+`python -m etl.compare` opens a read-only transaction and refuses the comparison unless both runs succeeded, used the same input files (hash and manifest), the same batch size and the same batch boundaries, and have complete execution metadata. It then full-outer-joins every Q1, Q2 and Q3 row of every batch and of the whole run: counts and bytes must be equal, Q3's `error_rate` within `1e-12`, and a missing row on either side is a difference. Malformed lines are compared per batch. Stored fingerprints alone are never trusted: actual table values are compared.
 
-The runtimes describe this validation session, not a controlled performance comparison. Some
-setup/testing work ran concurrently, and the host uses a 4 GB Docker/WSL memory cap on an 8 GB PC.
-Reference is a development oracle, never a real pipeline in the demonstration/report.
+## Phase 1 evidence (17 Nov 2026)
 
-## Docker reproducibility
-
-MongoDB **7.0.48**, PostgreSQL **15.20**, Hive image **4.0.1**; Python **3.13.0**.
-Exact image references, architecture, image IDs, driver versions and memory are in
-`validation/environment.json`. Use both Compose files when starting containers:
-
-```text
-docker compose -f docker-compose.yml -f compose.lock.yml up -d --wait --wait-timeout 360
-```
-
-Share the lock file to reproduce these versions. It does not prove that a teammate already
-uses them; each teammate should start with that file and confirm their environment.
-
-## Hive vs MongoDB (after the Hive engine was merged)
-
-Run on the team's Mac on 17 November 2026, same input files, batch size 500,000, both runs in
-one PostgreSQL database.
-
-| Run | Pipeline | Records | Malformed | Runtime |
-|---|---|---:|---:|---:|
-| `36eb3560-c931-44ec-8811-1b9d13e2a4c9` | hive | 3,461,613 | 1 | 165.06 s |
-| `b9e02d53-a31e-4c70-b040-ede2cacad9dc` | mongodb | 3,461,613 | 1 | 106.08 s |
-
-`python -m etl.compare --left-run 36eb3560-… --right-run b9e02d53-…`:
-
-| Query | Hive rows, all scopes | MongoDB rows, all scopes | Differences |
-|---|---:|---:|---:|
-| Q1 | 614 | 614 | 0 |
-| Q2 | 160 | 160 | 0 |
-| Q3 | 2,744 | 2,744 | 0 |
-
-Malformed-record differences: **0**. Result: **EQUIVALENT** (exit code 0).
-`scripts/verify_reference.py` also passes for the MongoDB run, and `etl.v_equivalence` shows
-`all_agree = true` for Q1-Q3 across hive, mongodb and reference.
-
-The reporting module is still team work.
-
-## Included evidence
-
-- `validation/mongodb-oracle.json` and `reference-oracle.json`: row and fingerprint comparisons.
-- `validation/sql-comparison.json`: all-scope SQL comparison report.
-- `validation/runs.json`, `run-integrity.json`, `fingerprint-equivalence.json`: SQL metadata.
-- `validation/mongodb-run.log`, `reference-run.log`, `smoke-test.log`, `person-b-tests.log`.
-- `validation/mongodb-final/q1.tsv`, `q2.tsv`, `q3.tsv`: final MongoDB output samples.
-- `validation/environment.json`: exact Docker builds and runtime versions.
+The files `mongodb-oracle.json`, `reference-oracle.json`, `sql-comparison.json`, `runs.json`, `run-integrity.json`, `fingerprint-equivalence.json`, `environment.json`, `mongodb-run.log`, `reference-run.log`, `person-b-tests.log` and `mongodb-final/` record the Phase 1 validation: MongoDB vs the answer key and vs the reference engine, and Hive (`36eb3560-…`) vs MongoDB (`b9e02d53-…`) at 500k, **EQUIVALENT** on all 614 Q1, 160 Q2 and 2,744 Q3 rows.

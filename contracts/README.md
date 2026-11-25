@@ -17,7 +17,9 @@ Full reasoning: the team spec doc, "NASA Log ETL – Shared Contracts Spec".
 
 - **Lines:** split each input file on `\n` separately, strip a trailing `\r`, keep a last line with no newline. Never concatenate the files (July ends with the truncated line `alyssa.p`).
 - **Bytes:** decode as UTF-8, invalid bytes -> U+FFFD (what Hadoop's `Text` already does).
-- **Dates:** build `log_date` (`YYYY-MM-DD`) and `log_hour` (0-23) by slicing regex groups. Never use engine date functions (MongoDB `$dateFromString` converts to UTC and shifts hours by 4).
+- **Parsed fields (every engine keeps all nine):** `host`, `log_timestamp`, `log_date`, `log_hour`, `http_method`, `resource_path`, `protocol_version`, `status_code`, `bytes_transferred`.
+- **Dates:** build `log_date` (`YYYY-MM-DD`), `log_hour` (0-23) and `log_timestamp` (`YYYY-MM-DD HH:MM:SS -0400`: the logged time and zone, unchanged) by slicing regex groups. Never use engine date functions (MongoDB `$dateFromString` converts to UTC and shifts hours by 4).
+- **Q2 ties:** `request_count` descending, then `resource_path` in raw UTF-8 byte order (PostgreSQL `COLLATE "C"`, Hadoop `Text`, MongoDB simple collation). Java and Pig string comparison is UTF-16 order, which differs for characters above U+FFFF.
 - **Missing parts:** `''`, never NULL. `bytes` `-` -> 0. All byte counts are 64-bit.
 - **No trim functions:** the regexes skip spaces themselves.
 - **Every valid line goes into every query.** No method or status filter, except Q3's 400-599 error rule.

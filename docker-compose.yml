@@ -40,6 +40,10 @@ services:
 
   hive:
     image: apache/hive:4.0.1
+    # The image keeps HiveServer2's pid file inside the container. After Docker Desktop restarts,
+    # the stale file makes HiveServer2 refuse to start ("running as process 7. Stop it first"),
+    # so remove it before the image's own entrypoint runs.
+    entrypoint: ["sh", "-c", "rm -f /opt/hive/conf/hiveserver2.pid; exec /entrypoint.sh"]
     environment:
       SERVICE_NAME: hiveserver2
       # Larger heap so whole-run queries over 3.4M lines don't run out of memory
@@ -73,11 +77,14 @@ services:
       - ./mapreduce:/mapreduce:ro     # MapReduce Java sources, compiled at the start of each run
       - ./runs:/runs                  # batch folders in, result files out
     healthcheck:
-      test: ["CMD-SHELL", "pig -version > /dev/null 2>&1 && javac -version > /dev/null 2>&1 && hadoop version > /dev/null 2>&1"]
-      interval: 15s
-      timeout: 60s
-      retries: 10
-      start_period: 20s
+      # Checks the tools are installed without starting a JVM: a check that ran `pig -version`,
+      # `javac -version` and `hadoop version` started three JVMs every 15 s and took CPU away from
+      # whatever engine was being timed. scripts/check_phase2.py runs real Pig and MapReduce jobs.
+      test: ["CMD-SHELL", "test -x /opt/pig/bin/pig && test -x /opt/jdk8/bin/javac && test -x /opt/hadoop/bin/hadoop"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
 
 volumes:
   pg_data:

@@ -1,0 +1,4 @@
+test batch: 2,000 lines, 1,999 match the contract envelope (Python)
+Pig 0.18       2,000 lines, 1,999 matches  in 2.1 s  OK
+MapReduce      2,000 lines, 1,999 matches  in 1.7 s  OK
+PHASE 2 SETUP OK

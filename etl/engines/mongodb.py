@@ -1,7 +1,7 @@
 """MongoDB pipeline.
 
-Part A (done): raw-line ingestion, parsing inside MongoDB, malformed records, Q1.
-Part B: Q2 and Q3 use two-stage grouping for exact distinct-host counts.
+Sahiti (Person A):  raw-line ingestion, parsing inside MongoDB, malformed records, Q1.
+Tushaar (Person B): Q2 and Q3.
 
 How the work is split between Python and MongoDB
 ------------------------------------------------
@@ -130,7 +130,10 @@ class MongoEngine(Engine):
             {"$set": {"ok": {"$gte": ["$mi", 0]}}},
             {"$set": {
                 "r": {"$cond": [ok, {"$regexFind": {"input": _cap("$c", 10), "regex": self.request}}, None]},
-                "f": {"$cond": [ok, {"$regexFind": {"input": _cap("$c", 10), "regex": self.fallback}}, None]},
+            }},
+            {"$set": {   # the fallback regex runs only when the request regex did not match
+                "f": {"$cond": [{"$and": [ok, {"$eq": ["$r", None]}]},
+                                {"$regexFind": {"input": _cap("$c", 10), "regex": self.fallback}}, None]},
             }},
             {"$project": {
                 "_id": 1, "b": 1, "n": 1, "ok": 1,
@@ -139,6 +142,10 @@ class MongoEngine(Engine):
                 "log_date": field({"$concat": [_cap("$c", 5), "-",
                                                {"$arrayElemAt": [self.month_numbers, "$mi"]}, "-",
                                                _cap("$c", 3)]}),
+                "log_timestamp": field({"$concat": [_cap("$c", 5), "-",
+                                                    {"$arrayElemAt": [self.month_numbers, "$mi"]}, "-",
+                                                    _cap("$c", 3), " ", _cap("$c", 6), ":", _cap("$c", 7),
+                                                    ":", _cap("$c", 8), " ", _cap("$c", 9)]}),
                 "log_hour": field({"$toInt": _cap("$c", 6)}),
                 "http_method": field({"$cond": ["$r", _cap("$r.captures", 0), ""]}),
                 "resource_path": field({"$cond": ["$r", _cap("$r.captures", 1), _cap("$f.captures", 0)]}),
@@ -160,15 +167,19 @@ class MongoEngine(Engine):
     def _queries(self, match: dict, out_dir: Path) -> Dict[str, int]:
         """Runs Q1-Q3 over the parsed rows selected by `match` and writes q1/q2/q3.tsv."""
         ms = {}
-        for qid, build, columns in (("q1", self._q1_pipeline, contracts.output_columns("q1.tsv")),
-                                    ("q2", self._q2_pipeline, contracts.output_columns("q2.tsv")),
-                                    ("q3", self._q3_pipeline, contracts.output_columns("q3.tsv"))):
+        for qid, rows_of in (("q1", lambda: self._aggregate(match, self._q1_pipeline())),
+                             ("q2", lambda: self._q2_rows(match)),
+                             ("q3", lambda: self._aggregate(match, self._q3_pipeline()))):
             t = time.monotonic()
-            rows = self.parsed.aggregate([{"$match": match}] + build(), allowDiskUse=True,
-                                         collation={"locale": "simple"})
-            write_tsv(out_dir / f"{qid}.tsv", ([d[c] for c in columns] for d in rows))
+            columns = contracts.output_columns(f"{qid}.tsv")
+            write_tsv(out_dir / f"{qid}.tsv", ([d[c] for c in columns] for d in rows_of()))
             ms[qid] = _ms(t)
         return ms
+
+    def _aggregate(self, match: dict, stages: list):
+        """One aggregation over the selected parsed rows, with byte-order string comparison."""
+        return self.parsed.aggregate([{"$match": match}] + stages, allowDiskUse=True,
+                                     collation={"locale": "simple"})
 
     def _q1_pipeline(self) -> list:
         """Q1 Daily Traffic Summary: per (log_date, status_code) -> request_count, total_bytes."""
@@ -181,29 +192,39 @@ class MongoEngine(Engine):
             {"$sort": {"log_date": 1, "status_code": 1}},
         ]
 
-    # ------------------------------------------------------------------ PERSON B
-    def _q2_pipeline(self) -> list:
-        """Q2 Top Requested Resources. Must return stages that output documents with fields
-        resource_path, request_count, total_bytes, distinct_host_count (up to 20 rows,
-        sorted by request_count descending, then resource_path ascending).
-        Parsed fields available: host, log_date, log_hour, http_method, resource_path,
-        protocol_version, status_code, bytes_transferred. The $match is added for you."""
-        # One row per (path, host), then one per path: no unbounded host arrays.
-        # finalize() repeats this over all parsed rows, so hosts crossing batches
-        # count once and a global top resource need not be in every batch's top 20.
-        return [
-            {"$group": {"_id": {"p": "$resource_path", "h": "$host"},
-                        "request_count": {"$sum": 1},
+    # ------------------------------------------------------------------ Tushaar (Person B): Q2, Q3
+    def _q2_rows(self, match: dict):
+        """Q2 Top Requested Resources: resource_path, request_count, total_bytes,
+        distinct_host_count for the 20 paths with the most requests (ties: path in byte order).
+
+        Two aggregations, both inside MongoDB:
+          1. per path: request count and bytes; sort; keep 20. Only one group per path.
+          2. distinct hosts, counted only over the rows of those 20 paths. Each winner's count
+             and bytes are passed in as literal arrays and attached inside the same aggregation.
+        Grouping every (path, host) pair first, as before, built a group for every pair in the
+        data and then threw all but 20 paths away. finalize() runs the same two steps over all
+        parsed rows, so hosts that appear in several batches count once."""
+        top = list(self._aggregate(match, [
+            {"$group": {"_id": "$resource_path", "request_count": {"$sum": 1},
                         "total_bytes": {"$sum": "$bytes_transferred"}}},
-            {"$group": {"_id": "$_id.p",
-                        "request_count": {"$sum": "$request_count"},
-                        "total_bytes": {"$sum": "$total_bytes"},
-                        "distinct_host_count": {"$sum": 1}}},
-            {"$project": {"_id": 0, "resource_path": "$_id", "request_count": 1,
-                          "total_bytes": 1, "distinct_host_count": 1}},
-            {"$sort": {"request_count": -1, "resource_path": 1}},
+            {"$sort": {"request_count": -1, "_id": 1}},
             {"$limit": 20},
-        ]
+        ]))
+        if not top:
+            return []
+        paths = [d["_id"] for d in top]
+        counts = [d["request_count"] for d in top]
+        nbytes = [d["total_bytes"] for d in top]
+        return self._aggregate({**match, "resource_path": {"$in": paths}}, [
+            {"$group": {"_id": {"p": "$resource_path", "h": "$host"}}},
+            {"$group": {"_id": "$_id.p", "distinct_host_count": {"$sum": 1}}},
+            {"$set": {"i": {"$indexOfArray": [paths, "$_id"]}}},
+            {"$project": {"_id": 0, "resource_path": "$_id",
+                          "request_count": {"$arrayElemAt": [counts, "$i"]},
+                          "total_bytes": {"$arrayElemAt": [nbytes, "$i"]},
+                          "distinct_host_count": 1}},
+            {"$sort": {"request_count": -1, "resource_path": 1}},   # rank order (20 rows)
+        ])
 
     def _q3_pipeline(self) -> list:
         """Q3 Hourly Error Analysis. Must return stages that output documents with fields

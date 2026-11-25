@@ -1,0 +1,10 @@
+parsed records: 8339 rows, every field incl. log_timestamp  OK
+counts batch 8342 8339 3  final 8342 8339 3  expected 8342 8339 3
+batch/output  q1        rows    21  OK
+batch/output  q2        rows    20  OK
+batch/output  q3        rows    31  OK
+batch/output  malformed rows     3  OK
+final/output  q1        rows    21  OK
+final/output  q2        rows    20  OK
+final/output  q3        rows    31  OK
+SAMPLE CHECK PASSED

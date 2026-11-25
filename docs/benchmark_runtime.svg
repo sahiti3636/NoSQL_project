@@ -1,56 +1,63 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" font-family="Inter, -apple-system, Helvetica, Arial, sans-serif">
-<rect width="960" height="560" fill="#fcfcfb"/>
-<text x="30" y="44" font-size="22" font-weight="600" fill="#0b0b0b">Full-run runtime by batch size (median of 3 runs)</text>
-<text x="30" y="70" font-size="14" fill="#52514e">3,461,613 log lines · Apple M3 Pro, Docker 8 GB · whiskers show min–max of the 3 runs</text>
-<rect x="30" y="88" width="14" height="14" rx="3" fill="#2a78d6"/><text x="52" y="100" font-size="14" fill="#0b0b0b">MongoDB 7</text>
-<rect x="170" y="88" width="14" height="14" rx="3" fill="#eb6834"/><text x="192" y="100" font-size="14" fill="#0b0b0b">Hive 4.0.1</text>
-<line x1="90" x2="930" y1="470.0" y2="470.0" stroke="#b9b7b0" stroke-width="1"/>
-<text x="80" y="475.0" font-size="13" fill="#52514e" text-anchor="end">0</text>
-<line x1="90" x2="930" y1="400.0" y2="400.0" stroke="#e4e3df" stroke-width="1"/>
-<text x="80" y="405.0" font-size="13" fill="#52514e" text-anchor="end">100</text>
-<line x1="90" x2="930" y1="330.0" y2="330.0" stroke="#e4e3df" stroke-width="1"/>
-<text x="80" y="335.0" font-size="13" fill="#52514e" text-anchor="end">200</text>
-<line x1="90" x2="930" y1="260.0" y2="260.0" stroke="#e4e3df" stroke-width="1"/>
-<text x="80" y="265.0" font-size="13" fill="#52514e" text-anchor="end">300</text>
-<line x1="90" x2="930" y1="190.0" y2="190.0" stroke="#e4e3df" stroke-width="1"/>
-<text x="80" y="195.0" font-size="13" fill="#52514e" text-anchor="end">400</text>
-<line x1="90" x2="930" y1="120.0" y2="120.0" stroke="#e4e3df" stroke-width="1"/>
-<text x="80" y="125.0" font-size="13" fill="#52514e" text-anchor="end">500</text>
-<text x="24" y="295.0" font-size="13" fill="#52514e" transform="rotate(-90 24 295.0)" text-anchor="middle">seconds</text>
-<path d="M157,470 V400.71000000000004 Q157,396.71000000000004 161,396.71000000000004 H225 Q229,396.71000000000004 229,400.71000000000004 V470 Z" fill="#2a78d6"/>
-<line x1="193.0" x2="193.0" y1="395.73" y2="397.9" stroke="#52514e" stroke-width="1.5"/>
-<line x1="186.0" x2="200.0" y1="397.9" y2="397.9" stroke="#52514e" stroke-width="1.5"/>
-<line x1="186.0" x2="200.0" y1="395.73" y2="395.73" stroke="#52514e" stroke-width="1.5"/>
-<text x="193.0" y="387.73" font-size="14" font-weight="600" fill="#0b0b0b" text-anchor="middle">105 s</text>
-<path d="M231,470 V168.10000000000002 Q231,164.10000000000002 235,164.10000000000002 H299 Q303,164.10000000000002 303,168.10000000000002 V470 Z" fill="#eb6834"/>
-<line x1="267.0" x2="267.0" y1="163.26000000000005" y2="189.72000000000003" stroke="#52514e" stroke-width="1.5"/>
-<line x1="260.0" x2="274.0" y1="189.72000000000003" y2="189.72000000000003" stroke="#52514e" stroke-width="1.5"/>
-<line x1="260.0" x2="274.0" y1="163.26000000000005" y2="163.26000000000005" stroke="#52514e" stroke-width="1.5"/>
-<text x="267.0" y="155.26000000000005" font-size="14" font-weight="600" fill="#0b0b0b" text-anchor="middle">437 s</text>
-<text x="230" y="496" font-size="15" font-weight="600" fill="#0b0b0b" text-anchor="middle">100k lines / batch</text>
-<text x="230" y="516" font-size="13" fill="#52514e" text-anchor="middle">35 batches</text>
-<path d="M437,470 V399.59000000000003 Q437,395.59000000000003 441,395.59000000000003 H505 Q509,395.59000000000003 509,399.59000000000003 V470 Z" fill="#2a78d6"/>
-<line x1="473.0" x2="473.0" y1="395.31" y2="398.32" stroke="#52514e" stroke-width="1.5"/>
-<line x1="466.0" x2="480.0" y1="398.32" y2="398.32" stroke="#52514e" stroke-width="1.5"/>
-<line x1="466.0" x2="480.0" y1="395.31" y2="395.31" stroke="#52514e" stroke-width="1.5"/>
-<text x="473.0" y="387.31" font-size="14" font-weight="600" fill="#0b0b0b" text-anchor="middle">106 s</text>
-<path d="M511,470 V354.65 Q511,350.65 515,350.65 H579 Q583,350.65 583,354.65 V470 Z" fill="#eb6834"/>
-<line x1="547.0" x2="547.0" y1="321.39" y2="355.41" stroke="#52514e" stroke-width="1.5"/>
-<line x1="540.0" x2="554.0" y1="355.41" y2="355.41" stroke="#52514e" stroke-width="1.5"/>
-<line x1="540.0" x2="554.0" y1="321.39" y2="321.39" stroke="#52514e" stroke-width="1.5"/>
-<text x="547.0" y="313.39" font-size="14" font-weight="600" fill="#0b0b0b" text-anchor="middle">170 s</text>
-<text x="510" y="496" font-size="15" font-weight="600" fill="#0b0b0b" text-anchor="middle">500k lines / batch</text>
-<text x="510" y="516" font-size="13" fill="#52514e" text-anchor="middle">7 batches</text>
-<path d="M717,470 V400.15 Q717,396.15 721,396.15 H785 Q789,396.15 789,400.15 V470 Z" fill="#2a78d6"/>
-<line x1="753.0" x2="753.0" y1="381.24" y2="397.76" stroke="#52514e" stroke-width="1.5"/>
-<line x1="746.0" x2="760.0" y1="397.76" y2="397.76" stroke="#52514e" stroke-width="1.5"/>
-<line x1="746.0" x2="760.0" y1="381.24" y2="381.24" stroke="#52514e" stroke-width="1.5"/>
-<text x="753.0" y="373.24" font-size="14" font-weight="600" fill="#0b0b0b" text-anchor="middle">106 s</text>
-<path d="M791,470 V374.11 Q791,370.11 795,370.11 H859 Q863,370.11 863,374.11 V470 Z" fill="#eb6834"/>
-<line x1="827.0" x2="827.0" y1="368.28999999999996" y2="376.41" stroke="#52514e" stroke-width="1.5"/>
-<line x1="820.0" x2="834.0" y1="376.41" y2="376.41" stroke="#52514e" stroke-width="1.5"/>
-<line x1="820.0" x2="834.0" y1="368.28999999999996" y2="368.28999999999996" stroke="#52514e" stroke-width="1.5"/>
-<text x="827.0" y="360.28999999999996" font-size="14" font-weight="600" fill="#0b0b0b" text-anchor="middle">143 s</text>
-<text x="790" y="496" font-size="15" font-weight="600" fill="#0b0b0b" text-anchor="middle">1M lines / batch</text>
-<text x="790" y="516" font-size="13" fill="#52514e" text-anchor="middle">4 batches</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="580" viewBox="0 0 960 580" font-family="Inter, -apple-system, Helvetica, Arial, sans-serif">
+<rect width="960" height="580" fill="#fcfcfb"/>
+<text x="30" y="44" font-size="22" font-weight="600" fill="#0b0b0b">Full-run runtime by batch size, four engines</text>
+<text x="30" y="70" font-size="14" fill="#52514e">3,461,613 log lines · one run each · Apple M3 Pro, Docker 8 GB, on mains power · lower is better</text>
+<rect x="30" y="90" width="14" height="14" rx="3" fill="#2a78d6"/><text x="52" y="102" font-size="14" fill="#0b0b0b">MongoDB 7</text>
+<rect x="154" y="90" width="14" height="14" rx="3" fill="#eb6834"/><text x="176" y="102" font-size="14" fill="#0b0b0b">Hive 4.0.1</text>
+<rect x="286" y="90" width="14" height="14" rx="3" fill="#1f9e6e"/><text x="308" y="102" font-size="14" fill="#0b0b0b">MapReduce</text>
+<rect x="410" y="90" width="14" height="14" rx="3" fill="#8b5bd0"/><text x="432" y="102" font-size="14" fill="#0b0b0b">Pig 0.18</text>
+<line x1="90" x2="930" y1="480.0" y2="480.0" stroke="#b9b7b0" stroke-width="1"/>
+<text x="80" y="485.0" font-size="13" fill="#52514e" text-anchor="end">0</text>
+<line x1="90" x2="930" y1="410.0" y2="410.0" stroke="#e4e3df" stroke-width="1"/>
+<text x="80" y="415.0" font-size="13" fill="#52514e" text-anchor="end">100</text>
+<line x1="90" x2="930" y1="340.0" y2="340.0" stroke="#e4e3df" stroke-width="1"/>
+<text x="80" y="345.0" font-size="13" fill="#52514e" text-anchor="end">200</text>
+<line x1="90" x2="930" y1="270.0" y2="270.0" stroke="#e4e3df" stroke-width="1"/>
+<text x="80" y="275.0" font-size="13" fill="#52514e" text-anchor="end">300</text>
+<line x1="90" x2="930" y1="200.0" y2="200.0" stroke="#e4e3df" stroke-width="1"/>
+<text x="80" y="205.0" font-size="13" fill="#52514e" text-anchor="end">400</text>
+<line x1="90" x2="930" y1="130.0" y2="130.0" stroke="#e4e3df" stroke-width="1"/>
+<text x="80" y="135.0" font-size="13" fill="#52514e" text-anchor="end">500</text>
+<text x="24" y="305.0" font-size="13" fill="#52514e" transform="rotate(-90 24 305.0)" text-anchor="middle">seconds</text>
+<path d="M112.0,480 V415.9 Q112.0,411.9 116.0,411.9 H148.0 Q152.0,411.9 152.0,415.9 V480 Z" fill="#2a78d6"><title>MongoDB 7, 100,000: 97.2 s</title></path>
+<text x="132.0" y="405.9" font-size="12" font-weight="600" fill="#0b0b0b" text-anchor="middle">97</text>
+<path d="M154.0,480 V186.4 Q154.0,182.4 158.0,182.4 H190.0 Q194.0,182.4 194.0,186.4 V480 Z" fill="#eb6834"><title>Hive 4.0.1, 100,000: 425.1 s</title></path>
+<text x="174.0" y="176.4" font-size="12" font-weight="600" fill="#0b0b0b" text-anchor="middle">425</text>
+<path d="M196.0,480 V405.8 Q196.0,401.8 200.0,401.8 H232.0 Q236.0,401.8 236.0,405.8 V480 Z" fill="#1f9e6e"><title>MapReduce, 100,000: 111.7 s</title></path>
+<text x="216.0" y="395.8" font-size="12" font-weight="600" fill="#0b0b0b" text-anchor="middle">112</text>
+<path d="M238.0,480 V301.0 Q238.0,297.0 242.0,297.0 H274.0 Q278.0,297.0 278.0,301.0 V480 Z" fill="#8b5bd0"><title>Pig 0.18, 100,000: 261.4 s</title></path>
+<text x="258.0" y="291.0" font-size="12" font-weight="600" fill="#0b0b0b" text-anchor="middle">261</text>
+<text x="195.0" y="504" font-size="14" font-weight="600" fill="#0b0b0b" text-anchor="middle">100,000</text>
+<text x="195.0" y="522" font-size="13" fill="#52514e" text-anchor="middle">35 batches</text>
+<path d="M322.0,480 V417.7 Q322.0,413.7 326.0,413.7 H358.0 Q362.0,413.7 362.0,417.7 V480 Z" fill="#2a78d6"><title>MongoDB 7, 500,000: 94.8 s</title></path>
+<text x="342.0" y="407.7" font-size="12" font-weight="600" fill="#0b0b0b" text-anchor="middle">95</text>
+<path d="M364.0,480 V339.0 Q364.0,335.0 368.0,335.0 H400.0 Q404.0,335.0 404.0,339.0 V480 Z" fill="#eb6834"><title>Hive 4.0.1, 500,000: 207.2 s</title></path>
+<text x="384.0" y="329.0" font-size="12" font-weight="600" fill="#0b0b0b" text-anchor="middle">207</text>
+<path d="M406.0,480 V438.1 Q406.0,434.1 410.0,434.1 H442.0 Q446.0,434.1 446.0,438.1 V480 Z" fill="#1f9e6e"><title>MapReduce, 500,000: 65.6 s</title></path>
+<text x="426.0" y="428.1" font-size="12" font-weight="600" fill="#0b0b0b" text-anchor="middle">66</text>
+<path d="M448.0,480 V388.0 Q448.0,384.0 452.0,384.0 H484.0 Q488.0,384.0 488.0,388.0 V480 Z" fill="#8b5bd0"><title>Pig 0.18, 500,000: 137.1 s</title></path>
+<text x="468.0" y="378.0" font-size="12" font-weight="600" fill="#0b0b0b" text-anchor="middle">137</text>
+<text x="405.0" y="504" font-size="14" font-weight="600" fill="#0b0b0b" text-anchor="middle">500,000</text>
+<text x="405.0" y="522" font-size="13" fill="#52514e" text-anchor="middle">7 batches</text>
+<path d="M532.0,480 V414.1 Q532.0,410.1 536.0,410.1 H568.0 Q572.0,410.1 572.0,414.1 V480 Z" fill="#2a78d6"><title>MongoDB 7, 1,000,000: 99.8 s</title></path>
+<text x="552.0" y="404.1" font-size="12" font-weight="600" fill="#0b0b0b" text-anchor="middle">100</text>
+<path d="M574.0,480 V364.0 Q574.0,360.0 578.0,360.0 H610.0 Q614.0,360.0 614.0,364.0 V480 Z" fill="#eb6834"><title>Hive 4.0.1, 1,000,000: 171.4 s</title></path>
+<text x="594.0" y="354.0" font-size="12" font-weight="600" fill="#0b0b0b" text-anchor="middle">171</text>
+<path d="M616.0,480 V444.4 Q616.0,440.4 620.0,440.4 H652.0 Q656.0,440.4 656.0,444.4 V480 Z" fill="#1f9e6e"><title>MapReduce, 1,000,000: 56.6 s</title></path>
+<text x="636.0" y="434.4" font-size="12" font-weight="600" fill="#0b0b0b" text-anchor="middle">57</text>
+<path d="M658.0,480 V393.8 Q658.0,389.8 662.0,389.8 H694.0 Q698.0,389.8 698.0,393.8 V480 Z" fill="#8b5bd0"><title>Pig 0.18, 1,000,000: 128.9 s</title></path>
+<text x="678.0" y="383.8" font-size="12" font-weight="600" fill="#0b0b0b" text-anchor="middle">129</text>
+<text x="615.0" y="504" font-size="14" font-weight="600" fill="#0b0b0b" text-anchor="middle">1,000,000</text>
+<text x="615.0" y="522" font-size="13" fill="#52514e" text-anchor="middle">4 batches</text>
+<path d="M742.0,480 V416.0 Q742.0,412.0 746.0,412.0 H778.0 Q782.0,412.0 782.0,416.0 V480 Z" fill="#2a78d6"><title>MongoDB 7, no batching: 97.1 s</title></path>
+<text x="762.0" y="406.0" font-size="12" font-weight="600" fill="#0b0b0b" text-anchor="middle">97</text>
+<path d="M784.0,480 V379.5 Q784.0,375.5 788.0,375.5 H820.0 Q824.0,375.5 824.0,379.5 V480 Z" fill="#eb6834"><title>Hive 4.0.1, no batching: 149.3 s</title></path>
+<text x="804.0" y="369.5" font-size="12" font-weight="600" fill="#0b0b0b" text-anchor="middle">149</text>
+<path d="M826.0,480 V448.1 Q826.0,444.1 830.0,444.1 H862.0 Q866.0,444.1 866.0,448.1 V480 Z" fill="#1f9e6e"><title>MapReduce, no batching: 51.2 s</title></path>
+<text x="846.0" y="438.1" font-size="12" font-weight="600" fill="#0b0b0b" text-anchor="middle">51</text>
+<path d="M868.0,480 V404.0 Q868.0,400.0 872.0,400.0 H904.0 Q908.0,400.0 908.0,404.0 V480 Z" fill="#8b5bd0"><title>Pig 0.18, no batching: 114.3 s</title></path>
+<text x="888.0" y="394.0" font-size="12" font-weight="600" fill="#0b0b0b" text-anchor="middle">114</text>
+<text x="825.0" y="504" font-size="14" font-weight="600" fill="#0b0b0b" text-anchor="middle">no batching</text>
+<text x="825.0" y="522" font-size="13" fill="#52514e" text-anchor="middle">1 batch</text>
+<text x="30" y="558" font-size="13" fill="#52514e">Hive, Pig and MapReduce pay a fixed cost per batch (about 8.1 s, 4.3 s and 1.8 s); MongoDB has almost none, so it is flat.</text>
 </svg>

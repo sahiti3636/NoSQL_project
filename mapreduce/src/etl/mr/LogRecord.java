@@ -19,6 +19,7 @@ import org.apache.hadoop.io.Writable;
  */
 public class LogRecord implements Writable {
     public String host = "";
+    public String logTimestamp = "";     // YYYY-MM-DD HH:MM:SS +hhmm, sliced from the log (no conversion)
     public String logDate = "";          // YYYY-MM-DD, built by slicing the timestamp
     public int logHour;                  // 0-23, as logged (no timezone conversion)
     public String httpMethod = "";
@@ -30,6 +31,7 @@ public class LogRecord implements Writable {
     @Override
     public void write(DataOutput out) throws IOException {
         Text.writeString(out, host);
+        Text.writeString(out, logTimestamp);
         Text.writeString(out, logDate);
         out.writeInt(logHour);
         Text.writeString(out, httpMethod);
@@ -42,6 +44,7 @@ public class LogRecord implements Writable {
     @Override
     public void readFields(DataInput in) throws IOException {
         host = Text.readString(in);
+        logTimestamp = Text.readString(in);
         logDate = Text.readString(in);
         logHour = in.readInt();
         httpMethod = Text.readString(in);
@@ -54,7 +57,7 @@ public class LogRecord implements Writable {
     /** All fields as one COPY-format line, e.g. for `hadoop fs -text` when debugging. */
     @Override
     public String toString() {
-        return CopyText.row(host, logDate, logHour, httpMethod, resourcePath, protocolVersion, statusCode, bytes);
+        return CopyText.row(host, logTimestamp, logDate, logHour, httpMethod, resourcePath, protocolVersion, statusCode, bytes);
     }
 
     public boolean isError() {

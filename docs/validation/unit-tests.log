@@ -1,0 +1,27 @@
+test_batch_crossing_files_has_two_unchanged_pieces (test_batcher.BatcherTest.test_batch_crossing_files_has_two_unchanged_pieces) ... ok
+test_counts_and_ids (test_batcher.BatcherTest.test_counts_and_ids) ... ok
+test_exact_multiple_has_no_empty_batch (test_batcher.BatcherTest.test_exact_multiple_has_no_empty_batch) ... ok
+test_manifest_hashes_match_files (test_batcher.BatcherTest.test_manifest_hashes_match_files) ... ok
+test_no_batching_is_one_batch_of_every_line (test_batcher.BatcherTest.test_no_batching_is_one_batch_of_every_line) ... ok
+test_pieces_reassemble_to_exact_original_bytes (test_batcher.BatcherTest.test_pieces_reassemble_to_exact_original_bytes) ... ok
+test_rejects_bad_input (test_batcher.BatcherTest.test_rejects_bad_input) ... ok
+test_all_four_pipelines_registered (test_phase2_setup.Phase2SetupTest.test_all_four_pipelines_registered) ... ok
+test_contract_regexes_survive_quoting (test_phase2_setup.Phase2SetupTest.test_contract_regexes_survive_quoting) ... ok
+test_pig_copy_escape (test_phase2_setup.Phase2SetupTest.test_pig_copy_escape)
+Pig's REPLACE is Java replaceAll inside a Pig literal; simulate both layers and check ... ok
+test_read_counts_from_part_files (test_phase2_setup.Phase2SetupTest.test_read_counts_from_part_files) ... ok
+test_control_characters_are_shown_escaped (test_report.CellTest.test_control_characters_are_shown_escaped) ... ok
+test_none_and_bool (test_report.CellTest.test_none_and_bool) ... ok
+test_numbers_get_thousands_separators (test_report.CellTest.test_numbers_get_thousands_separators) ... ok
+test_all_rows (test_report.RenderTest.test_all_rows) ... ok
+test_failed_run_shows_error_and_no_results (test_report.RenderTest.test_failed_run_shows_error_and_no_results) ... ok
+test_html_escapes_values (test_report.RenderTest.test_html_escapes_values) ... ok
+test_rows_limit_applies_to_q1_and_q3_only (test_report.RenderTest.test_rows_limit_applies_to_q1_and_q3_only) ... ok
+test_text_shows_required_metadata (test_report.RenderTest.test_text_shows_required_metadata) ... ok
+test_long_text_is_cut (test_report.TableTest.test_long_text_is_cut) ... ok
+test_numbers_right_aligned_text_left (test_report.TableTest.test_numbers_right_aligned_text_left) ... ok
+
+----------------------------------------------------------------------
+Ran 21 tests in 0.133s
+
+OK
